@@ -1,0 +1,314 @@
+/* Phần header table */
+.container-table {
+  padding: 0 24px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  margin-bottom: 10px;
+}
+.container-table_header {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0 10px 0px;
+}
+/* Phần table */
+.table-function {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px;
+  z-index: 6;
+  background-color: var(--while__color);
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+}
+/* Phần thực hiện nhiều chức năng */
+.table-function_series {
+  background-color: var(--while__color);
+  border: 2px solid #3b3c3f;
+  padding: 0 16px !important;
+  border-radius: 30px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.table-function_series:hover {
+  background-color: #d2d3d6;
+}
+.table-function_series:active {
+  background-color: #bbbcbc;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+.table-function_series span {
+  font-family: "notosans-semibold";
+  padding-right: 4px;
+}
+.table-function_series-icon {
+  background: var(--url__icon);
+  background-position: -560px -359px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+}
+.table-list_action {
+  border: solid 1px var(--border__input);
+  background-color: var(--while__color);
+  color: var(--text__color);
+  font-family: "notosans-regular";
+  border-radius: 2px;
+  padding: 3px 0;
+  min-width: 100px;
+  right: 5px;
+  position: absolute;
+  z-index: 5;
+  transition: all ease 0.15s;
+  top: calc(100% + 10px);
+  opacity: 0;
+  visibility: hidden;
+}
+.table-list_action hr {
+  margin: 0 10px;
+}
+.list_action-item {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all ease 0.15s;
+  color: inherit;
+}
+.list_action-title{
+  color: inherit;
+  text-align: left;
+  cursor: default;
+  white-space: nowrap;
+  padding: 5px 10px;
+}
+.list_action-item:hover {
+  background-color: #f5f5f5;
+  color: var(--primary__color);
+}
+/* Phần search */
+.search-table {
+  position: relative;
+}
+.icon-search {
+  background: var(--url__icon) no-repeat;
+  background-position: -992px -360px;
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+.action-render_table {
+  background: var(--url__icon) no-repeat;
+  cursor: pointer;
+  margin-left: 12px;
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+.action-render_table::before {
+  display: none;
+  position: absolute;
+  background-color: var(--menu__color);
+  color: var(--text__while-color);
+  text-align: center;
+  padding: 6px 6px;
+  border-radius: 3px;
+  top: 120%;
+  font-size: 12px;
+}
+.action-render_table:hover:before {
+  display: block;
+}
+.reload-table:hover {
+  background-position: -1097px -88px;
+}
+.reload-table {
+  background-position: -423px -201px;
+}
+.setting-table:hover {
+  background-position: -88px -256px;
+}
+.setting-table {
+  background-position: -88px -200px;
+}
+.export-data:hover {
+  background-position: -704px -256px;
+}
+.export-data {
+  background-position: -704px -200px;
+}
+.setting-table::before {
+  content: attr(content);
+  width: 130px;
+  left: -96px;
+}
+.reload-table::before {
+  content: attr(content);
+  width: 100px;
+  left: -40px;
+}
+.export-data::before {
+  content: attr(content);
+  width: 110px;
+  left: -50px;
+}
+.table-function_search {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+}
+.input.input-table_search {
+  padding-left: 10px;
+  padding-right: 2.75rem;
+}
+/* Phần phân trang */
+.form-fix{
+	min-width: 316px;
+	display: flex;
+	align-items: center;
+}
+.btn-add{
+	display: flex;
+  position: relative;
+	align-items: center;
+	padding: 0;
+}
+.toggle-list:focus .table-list_action{
+  z-index: 10;
+  top: calc(100% + 2px);
+  opacity: 1;
+  visibility: visible;
+}
+.import,.add{
+	transition: all 0.15s ease-in-out;
+	font-family: "notosans-bold";  
+	cursor: pointer;
+	outline: none;
+	border: none;
+	background-color: var(--primary__color);
+	height: 100%;
+	height: 32px;
+	color: var(--text__while-color);
+}
+.import:hover,.add:hover{
+	background-color: var(--primary__color-hover);
+}
+.import:active,.add:active{
+	background-color: var(--primary__color);
+}
+.import:focus{
+  box-shadow: 0 0 0 2px #e0e0e0;
+}
+.add:focus{
+  box-shadow: 0 0 0 2px #e0e0e0;
+}
+.add{
+	flex: 1;
+	border-radius: 30px 0 0 30px;
+	padding: 0 19px;
+	position: relative;
+}
+.add::before{
+	content: '';
+	position: absolute;
+	width: 1px;
+	height: 22px;
+	background-color: var(--while__color);
+	top: 5px;
+	right: 0;
+}
+.import{
+	border-radius: 0 30px 30px 0;
+	width: 30px;
+	padding: 0 5px;
+}
+.import .icon{
+	display: block;
+	background: var(--url__icon) no-repeat;
+	background-position: -848px -359px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+}
+.prev_page{
+  display: flex;
+  align-items: center;
+  color: #0075c0;
+  margin-top: 4px;
+}
+.prev_page-icon{
+  background: var(--url__icon) no-repeat;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  background-position: -224px -360px;
+}
+/* Nút bấm action */
+.action-colum_table {
+  display: flex;
+  height: 36px;
+  position: relative;
+}
+.action-table_left {
+  padding: 6px 1px 6px 16px;
+}
+.action-table_right {
+  padding: 8px 10px;
+  width: 46px;
+}
+.action-table {
+  outline: none;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+.action-table:active .border-icon_table,
+.action-table:active .action-default {
+  border: solid 1px #0075c0;
+}
+.action-icon {
+  background: var(--url__icon) no-repeat -900px -365px;
+  width: 8px;
+  height: 5px;
+  margin: 0 auto;
+}
+.action-default {
+  color: #0075c0;
+  font-family: "notosans-bold";
+  border: solid 1px transparent;
+  line-height: 14px;
+  position: relative;
+  padding-left: 1px;
+}
+.action-default::before {
+  content: "";
+  height: 120%;
+  position: absolute;
+  width: 1px;
+  background-color: var(--while__color);
+  top: -1px;
+  right: -3px;
+  /* background-color: #000; */
+}
+.widget-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
