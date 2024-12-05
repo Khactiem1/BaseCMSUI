@@ -1,5 +1,6 @@
 export default {
   Title: "Nhân viên",
+  FilterGender: "Lọc giới tính",
   List: {
     Title: "Danh mục nhân viên",
   },

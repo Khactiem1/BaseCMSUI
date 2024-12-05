@@ -19,13 +19,57 @@
     </div>
     <div class="table-function sticky">
       <div class="form-fix">
-        <button class="table-function_series toggle-list">
-          <span>{{ $t('i18nCommon.batch_execution') }}</span>
-          <div class="table-function_series-icon"></div>
-          <div v-show="true" class="table-list_action" v-if="gridInfo.selected?.length">
-            <div class="list_action-item" @click="deleteMultiple">{{ $t('i18nEnum.ModelState.Delete') }}</div>
-          </div>
-        </button>
+        <div class="action-left flex">
+          <button style="margin-right: 8px;" class="table-function_series toggle-list">
+            <span>{{ $t('i18nCommon.batch_execution') }}</span>
+            <div class="table-function_series-icon"></div>
+            <div v-show="true" class="table-list_action" v-if="gridInfo.selected?.length">
+              <div class="list_action-item" @click="deleteMultiple">{{ $t('i18nEnum.ModelState.Delete') }}</div>
+              <div class="list_action-item" @click="toggleActive(gridInfo.selected, false)">{{ $t('i18nEnum.FeatureRow.Active') }}</div>
+              <div class="list_action-item" @click="toggleActive(gridInfo.selected, true)">{{ $t('i18nEnum.FeatureRow.Inactive') }}</div>
+            </div>
+          </button>
+          <menu-wrapper class="topnav-widget-more-container" :hideInContent="false" :position="{ at: 'left bottom', my: 'left top' }">
+            <template #menu-button="{ toggleMenu }">
+              <ms-button
+                style="height: 30px;"
+                :class="[`${isFilterAdvanced ? 'bg-orange-medium' : ''}`]"
+                @click="toggleMenu"
+              >
+                {{ $t('i18nControl.MsGridViewer.filter') }}
+              </ms-button>
+            </template>
+            <template #menu-content="{ closeHandler }">
+              <div class="padding-body-filter">
+                <div class="padding-body-filter-content">
+                  <label class="label">{{ $t('i18nEmployee.FilterGender') }}:</label>
+                  <ms-checkbox
+                    style="margin-bottom: 8px;" 
+                    v-model="filterGender.male"
+                  >
+                    <div class="info-checkbox">{{ $t('i18nEnum.Gender.Male') }}</div>
+                  </ms-checkbox>
+                  <ms-checkbox
+                    style="margin-bottom: 8px;" 
+                    v-model="filterGender.female"
+                  >
+                    <div class="info-checkbox">{{ $t('i18nEnum.Gender.Female') }}</div>
+                  </ms-checkbox>
+                  <ms-checkbox
+                    v-model="filterGender.other"
+                  >
+                    <div class="info-checkbox">{{ $t('i18nEnum.Gender.Other') }}</div>
+                  </ms-checkbox>
+                </div>
+                <div class="filter-line"></div>
+                <div class="padding-body-filter-footer">
+                  <ms-button @click="closeHandler"> {{ $t('i18nCommon.Close') }} </ms-button>
+                  <ms-button class="primary" @click="doFilter(closeHandler)"> {{ $t('i18nControl.MsGridViewer.filter') }} </ms-button>
+                </div>
+              </div>
+            </template>
+          </menu-wrapper>
+        </div>
         <list-condition-filter :grid="$refs[viewRef]" @loadData="loadData"></list-condition-filter>
       </div>
       <div style="min-width: 320px;" class="table-function_search">
@@ -85,7 +129,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, getCurrentInstance, ref } from "vue";
+import { defineComponent, getCurrentInstance, ref, reactive } from "vue";
 import MsGridViewer from '@/components/msGridViewer/MsGridViewer.vue'
 import ListConditionFilter from '@/components/msGridViewer/ListConditionFilter.vue';
 import BaseList from '@/views/base/BaseList'
@@ -108,12 +152,72 @@ export default defineComponent({
     const layoutTag = ref('EmployeeList'); // Cấu hình layout
     const formDetailName = ref('EmployeeDetail'); // Cấu hình tên form detail
     const api = ref(employeeAPI); // Cấu hình api
+    const isFilterAdvanced = ref(false); // Cờ đánh dấu là đang thực hiện lọc nâng cao
+    /** Bộ lọc nâng cao */
+    const filterGender = reactive({
+      male: false,
+      female: false,
+      other: false,
+    });
+
+    /**
+     * Thực hiện lọc nâng cao
+     * @author nktiem 05.12.2024
+     */
+    const doFilter = (closeHandler: Function) => {
+      const me: any = proxy;
+      if(typeof me.$refs[me.viewRef]?.loadPageIndex === 'function'){
+        me.$refs[me.viewRef].loadPageIndex(1);
+      }
+      if(typeof closeHandler === 'function'){
+        closeHandler();
+      }
+    };
+
+    /**
+		 * Xử lý custom tham số load data trước khi call lên serve lấy dữ liệu
+     * Xử lý thêm lọc nâng cao giới tính
+     * @override
+     * @author nktiem 05.12.2024
+		 */
+    const customParamLoadData = (param: any) => {
+      const me: any = proxy;
+      let customFilterGender: any [] = [];
+      let isPushOr = false;
+      if(filterGender.male){
+        customFilterGender.push(['gender', '=', me.$ms.constant.Gender.Male]);
+        isPushOr = true;
+      }
+      if(filterGender.female){
+        if(isPushOr){
+          customFilterGender.push("or");
+        }
+        customFilterGender.push(['gender', '=', me.$ms.constant.Gender.Female]);
+        isPushOr = true;
+      }
+      if(filterGender.other){
+        if(isPushOr){
+          customFilterGender.push("or");
+        }
+        customFilterGender.push(['gender', '=', me.$ms.constant.Gender.Other]);
+      }
+      me.$ms.commonFn.concatFilter(param, customFilterGender);
+      if(customFilterGender?.length){
+        isFilterAdvanced.value = true;
+        return;
+      }
+      isFilterAdvanced.value = false;
+    };
     
     return {
       api,
       layoutTag,
       storeModule,
       formDetailName,
+      filterGender,
+      isFilterAdvanced,
+      doFilter,
+      customParamLoadData,
     }
   },
 });

@@ -1,5 +1,6 @@
 export default {
   Title: "Employee",
+  FilterGender: "Filter gender",
   List: {
     Title: "Employee dictionary",
   },

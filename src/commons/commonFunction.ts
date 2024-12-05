@@ -82,7 +82,10 @@ class CommonFunction {/**
 	 */
 	getEnumValue(enumName: any, text: any) {
 		let source = this.getEnumSource(enumName);
-		let textTrim = text.trim();
+		let textTrim = text;
+		if(typeof text.trim === 'function'){
+			textTrim = text.trim();
+		}
 		for (let i = 0; i < source.length; i++) {
 			let item = source[i];
 			if (textTrim === item.enumText) {
@@ -229,6 +232,25 @@ class CommonFunction {/**
 			}
 		}
 		return arr;
+	}
+
+	/**
+	 * Xử lý nối 2 filter lại với nhau với param tham số paging đã stringify
+	 */
+	concatFilter(param: any, filterConcat: any []){
+		if(filterConcat?.length){
+			let filter: any [] = [];
+			if(param.Filter && typeof param.Filter === 'string'){
+				filter = JSON.parse(param.Filter);
+			}
+			if(filter?.length){
+				filter.push("and");
+			}
+			filter.push(filterConcat);
+			if(filter?.length){
+				param.Filter = JSON.stringify(filter);
+			}
+		}
 	}
 
 	buildFilterParam(filters: any) {

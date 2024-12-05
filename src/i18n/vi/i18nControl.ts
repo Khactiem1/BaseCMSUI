@@ -26,5 +26,7 @@ export default {
     width: "Độ rộng",
     fixed_col: "Cố định cột",
     drag: "Kéo thả để thay đổi vị trí",
+    selected: "Đã chọn",
+    removeSelectedAll: "Bỏ chọn tất cả",
   },
 }

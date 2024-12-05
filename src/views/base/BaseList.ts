@@ -279,16 +279,19 @@ export default {
 		 */
 		async toggleActive(records: any [], value: boolean ){
 			const me: any = this;
+			const lstID = records.map((_: any) => _[me.storeModule._config.field.key]);
 			let data = {
-				ListID: records.map((_: any) => _[me.storeModule._config.field.key]),
+				ListID: lstID,
 				Inactive: value,
 			};
 			me.$ms.commonFn.mask();
 			let res = await me.api.inactive(data);
 			me.$ms.commonFn.unmask();
 			if(res?.Success){
-				records.forEach((_: any) => {
-					_.inactive = value;
+				me.storeModule.items.forEach((row: any) => {
+					if(lstID.includes(row[me.storeModule._config.field.key])){
+						row.inactive = value;
+					}
 				});
 			}
 		},
@@ -335,6 +338,7 @@ export default {
 						let idxRemove = me.storeModule.items.findIndex((row: any) => row[me.storeModule._config.field.key] === _);
 						if (idxRemove !== -1){
 							me.storeModule.items.splice(idxRemove, 1);
+							me.storeModule.total -= 1;
 						}
 					});
 					me.gridInfo.selected = [];

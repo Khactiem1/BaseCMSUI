@@ -64,6 +64,7 @@
               :key="idField ? row[idField] : index"
               @dblclick="handleDoubleClickRow(row)"
               @click="handleClickRow(row)"
+              :class="[`${row.selected ? 'row-selected' : ''}`]"
             >
               <!-- ô check box -->
               <td v-if="multiple" class="column-sticky">
@@ -138,6 +139,16 @@
     <div v-if="data.length !== 0 && pageTotal" class="paging-container sticky">
       <div class="total-record">
         {{ $t('i18nCommon.total') }}: <strong>{{ pageTotal }}</strong> {{ $t('i18nCommon.record') }}
+        <span 
+          v-if="multiple && gridInfo.selected?.length"
+        > 
+          - 
+          <span style="color: var(--primary__color);">{{ $t('i18nControl.MsGridViewer.selected') }}:</span>
+          <strong style="padding: 0 4px;">{{ gridInfo.selected.length }}</strong>
+          <span style="color: var(--primary__color);">{{ $t('i18nCommon.record') }}</span>
+          -
+          <span @click="removeSelectedAll" class="remove-selected-all">{{ $t('i18nControl.MsGridViewer.removeSelectedAll') }}</span>
+        </span>
       </div>
       <div v-if="pagination" class="paging">
         <ms-combobox
@@ -328,7 +339,7 @@ export default defineComponent({
      * Ẩn hiện check tất cả
      * Khắc Tiềm - 15.09.2022
      */
-     const isCheckedAll = computed(()=> {
+    const isCheckedAll = computed(()=> {
       const me: any = proxy;
       if(me.idField && me.multiple && me.data && me.gridInfo.selected){
         const lstDataxID: any [] = me.data.map((_: any) => _[me.idField]);
@@ -339,6 +350,14 @@ export default defineComponent({
         return false;
       }
     });
+
+    /**
+     * Bỏ chọn tất cả các bản ghi đang selected
+     */
+    const removeSelectedAll = () => {
+      const me: any = proxy;
+      me.gridInfo.selected = [];
+    };
 
     /**
      * Xử lý check all hoặc bỏ check all toàn bộ rowData
@@ -387,7 +406,11 @@ export default defineComponent({
      * Xử lý click row
      */
     const handleClickRow = (row: any) => {
-
+      const me: any = proxy;
+      me.data.forEach((rowData: any) => {
+        delete rowData.selected;
+      });
+      row.selected = true;
     };
 
     /** Kiểm tra sắp xếp lại cột khi kéo thả */
@@ -708,12 +731,13 @@ export default defineComponent({
       handleFixColumn,
       handleDoubleClickRow,
       handleClickRow,
+      removeSelectedAll,
     };
   },
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 ::-webkit-scrollbar-thumb {
   border-radius: 0;
   background: #b0b0b0;
@@ -809,6 +833,14 @@ tbody tr:hover .z3,
 .table tbody tr:hover td:first-child {
   background-color: #f2f9ff;
 }
+
+.row-selected{
+  background-color: #f5ecda !important;
+  .column-sticky, .column-end{
+    background-color: #f5ecda !important;
+  }
+}
+
 tbody tr.active,
 tbody tr.active .z3,
 .table tbody tr.active th:last-child,
@@ -1009,5 +1041,12 @@ thead .z3{
 tbody .z3{
   background-color: var(--while__color);
   z-index: 3 !important;
+}
+.remove-selected-all{
+  color: var(--primary__color);
+  cursor: pointer;
+  &:hover{
+    text-decoration: underline;
+  }
 }
 </style>

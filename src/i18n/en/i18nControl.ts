@@ -26,5 +26,7 @@ export default {
     width: "Width",
     fixed_col: "Fixed col",
     drag: "Drag and drop to change position",
+    selected: "Selected",
+    removeSelectedAll: "Remove selected all",
   },
 }

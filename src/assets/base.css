@@ -155,3 +155,6 @@ body {
   align-items: center;
   justify-content: center;
 }
+.bg-orange-medium{
+  background-color: #f5ecda !important;
+}
