@@ -268,6 +268,17 @@ export default class BaseAPI {
   }
 
 	/**
+	 * API xoá hàng loạt bản ghi
+	 */
+	deleteMultiple(payload: any){
+		let request = {
+      url: this.getAPIUrl() + '/delete_multiple',
+      data: payload,
+    };
+    return httpClient.postAsync(request);
+	}
+
+	/**
 	 * Lấy dữ liệu combobox load paging
 	 */
 	getComboboxPaging(payload: any) {

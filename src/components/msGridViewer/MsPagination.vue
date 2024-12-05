@@ -1,173 +1,154 @@
 <template>
   <div class="show-paging">
     <div class="show-paging_item" 
-      @click="handlePrevPage()"
-      :class="{ disabled : currentPage === 1 }">{{ $t('i18nCommon.prev') }}</div>
+      @click="previousPage"
+      :class="{ disabled : disablePrevPage }">{{ $t('i18nCommon.prev') }}
+    </div>
     <div 
-      v-for="(item, index) in displayPaging" 
-      :key="index"
-      @click="handleChangePage(item)"
       class="show-paging_item show-paging_text"
-      :class="{active : currentPage === item}"
+      :class="{ active: pageIndex == 1 }"
+      @click="loadPageIndex(1)"
+    >
+      1
+    </div>
+    <div v-if="pageIndex > 3" class="show-paging_item show-paging_text">...</div>
+    <div 
+      v-for="item in pageIndexs" 
+      :key="item"
+      class="show-paging_item show-paging_text"
+      @click="loadPageIndex(item)"
+      :class="{active : pageIndex === item}"
     >
       {{ item }}
     </div>
-    <div class="show-paging_item" 
-      @click="handleNextPage()"
-      :class="{ disabled : currentPage === Math.ceil(totalCount / countRecordPageRecord) }"
+    <div v-if="pageIndex <= totalPages - 3" class="show-paging_item show-paging_text">...</div>
+    <div
+      class="show-paging_item show-paging_text"
+      v-if="totalPages > 1"
+      :class="{
+        active: pageIndex == totalPages,
+      }"
+      @click="loadPageIndex(totalPages)"
     >
-    {{ $t('i18nCommon.next') }}
+      {{ totalPages }}
+    </div>
+    <div 
+      class="show-paging_item" 
+      @click="nextPage"
+      :class="{ disabled : disableNextPage }"
+    >
+      {{ $t('i18nCommon.next') }}
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { toRefs, ref, computed, defineComponent } from "vue";
+import { computed, defineComponent, getCurrentInstance } from "vue";
 
 export default defineComponent({
-  props: ["value", "totalCount", "countRecordPageRecord"],
-  emits: ["custom-handle-select-paging"],
-  setup(props, context) {
-    /**
-     * Trang hiện tại đứng
-     * NK Tiềm 7/10/2022
-     */
-    const currentPage = ref(1);
+  props: {
+    pageSize: {
+      type: Number,
+      default: 20
+    },
+    pageTotal: {
+      type: Number,
+      default: 20
+    },
+    pageIndex: {
+      default: 1,
+      type: Number,
+    },
+  },
+  emits: ["load-page-index"],
+  setup() {
+    const { proxy }: any = getCurrentInstance();
 
     /**
-     * Trang hiển thị thay đổi
-     * NK Tiềm 7/10/2022
+     * Số page render tự động
      */
-    const pageChangeCLick = ref(3);
+    const pageIndexs = computed(() => {
+      const me: any = proxy;
+      let ps = [];
+      // Nếu trang hiện tại > 2 thì bắt đầu từ pageIndex - 1 còn nếu < 3 thì nút bắt đầu là 2
+      let start = me.pageIndex > 2 ? me.pageIndex - 1 : 2;
+      // Nút kết thúc < tổng số trang - 2 thì nút kết thúc là giá trị trang hiện tại + 1 còn nếu không thì tổng số trang - 1
+      let end =
+        me.pageIndex < me.totalPages - 2
+          ? me.pageIndex + 1
+          : me.totalPages - 1;
 
-    /**
-     * props truyền vào là lượng muốn lấy và số tổng danh sách
-     * NK Tiềm 7/10/2022
-     */
-    const { countRecordPageRecord, totalCount } = toRefs(props);
-
-    // watch(value, (newValue) => {
-    //   currentPage.value = (newValue / countRecordPageRecord.value) + 1;
-    // })
-
-    /**
-     * Danh sách mảng hiển thị lên giao diện
-     * NK Tiềm 7/10/2022
-     */
-    const displayPaging = computed(()=> {
-      const arr = [];
-      for(let i = 1; i <= Math.ceil(totalCount.value / countRecordPageRecord.value); i++){
-        if(currentPage.value === Math.ceil(totalCount.value / countRecordPageRecord.value) - 1 || currentPage.value === Math.ceil(totalCount.value / countRecordPageRecord.value)){
-          if(i === Math.ceil(totalCount.value / countRecordPageRecord.value)){
-            arr.push(i);
-          }
-          else if(i === 3){
-            if(Math.ceil(totalCount.value / countRecordPageRecord.value) === 4){
-              arr.push(i);
-            }
-            else{
-              arr.push("...");
-            }
-          }
-          else if(i < 4){
-            arr.push(i);
-          }
-          else if(i === 4){
-            arr.push(pageChangeCLick.value);
-          }
-        }
-        else{
-          if(i === Math.ceil(totalCount.value / countRecordPageRecord.value)){
-            arr.push(i);
-          }
-          else if(i === 3){
-            arr.push(pageChangeCLick.value);
-          }
-          else if(i < 4){
-            arr.push(i);
-          }
-          else if(i === 4){
-            arr.push("...");
-          }
-        }
-      }
-      return arr;
+      // Đẩy vào mảng ps chứa các nút được phép hiển thị khi phân trang
+      for (let i = start; i <= end; i++) ps.push(i);
+      return ps;
     });
 
     /**
-     * Hàm xử lý chọn trang
-     * NK Tiềm 7/10/2022
-     * @param {Biến nhận vào là trang muốn lấy} page 
+     * Tổng số trang theo pageSize hiện tại của grid
      */
-    async function handleChangePage(page: any){
-      try {
-        if(page === "..."){
-          if(currentPage.value === Math.ceil(totalCount.value / countRecordPageRecord.value) - 1 || currentPage.value === Math.ceil(totalCount.value / countRecordPageRecord.value)){
-            handlePrevPage();
-          }
-          else{
-            handleNextPage();
-          }
-        }
-        else{
-          await context.emit("custom-handle-select-paging", page);
-          currentPage.value = page;
-          if(page === Math.ceil(totalCount.value / countRecordPageRecord.value)){
-            pageChangeCLick.value = currentPage.value - 1;
-          }
-          else if(page === Math.ceil(totalCount.value / countRecordPageRecord.value) - 1){
-            pageChangeCLick.value = currentPage.value;
-          }
-          else{
-            pageChangeCLick.value = 3;
-          }
-        }
-      } catch (e) {
-        console.log(e);
+    const totalPages = computed(() => {
+      const me: any = proxy;
+      return Math.ceil(me.pageTotal / me.pageSize);
+    });
+
+    /**
+     * Thực hiện quay về trang trước
+     */
+    const previousPage = () => {
+      const me: any = proxy;
+      if (!me.disablePrevPage) {
+        me.loadPageIndex(me.pageIndex - 1);
       }
     }
 
     /**
-     * Hàm xử lý quay lại trang
-     * NK Tiềm 7/10/2022
+     * Thực hiện đi tới trang kế tiếp
      */
-    function handlePrevPage(){
-      try {
-        if(currentPage.value > 1){
-          if(currentPage.value > 3 && currentPage.value < Math.ceil(totalCount.value / countRecordPageRecord.value)){
-            pageChangeCLick.value = currentPage.value - 1;
-          }
-          currentPage.value -= 1;
-          context.emit("custom-handle-select-paging", currentPage.value);
-        }
-      } catch (e) {
-        console.log(e);
+    const nextPage = () => {
+      const me: any = proxy;
+      if (!me.disableNextPage) {
+        me.loadPageIndex(me.pageIndex + 1);
       }
-    }
-    
+    };
+
     /**
-     * Hàm xử lý next trang
-     * NK Tiềm 7/10/2022
+     * Thực hiện load đến trang số chỉ định
      */
-    function handleNextPage(){
-      try {
-        if(currentPage.value < Math.ceil(totalCount.value / countRecordPageRecord.value)){
-          if(currentPage.value >= 3 && currentPage.value < Math.ceil(totalCount.value / countRecordPageRecord.value) - 1){
-            pageChangeCLick.value = currentPage.value + 1;
-          }
-          currentPage.value += 1;
-          context.emit("custom-handle-select-paging", currentPage.value);
-        }
-      } catch (e) {
-        console.log(e);
+    const loadPageIndex = (index: any) => {
+      const me: any = proxy;
+      me.$emit('load-page-index', Number(index));
+    };
+
+    /**
+     * Thực hiện disablePrevPage
+     */
+    const disablePrevPage = computed(() => {
+      const me: any = proxy;
+      if (me.pageIndex <= 1) {
+        return true;
       }
-    }
+      return false;
+    });
+
+    /**
+     * Thực hiện disableNextPage
+     */
+    const disableNextPage = computed(() => {
+      const me: any = proxy;
+      if (me.pageIndex >= me.totalPages) {
+        return true;
+      }
+      return false;
+    });
+    
     return {
-      currentPage,
-      displayPaging,
-      handleChangePage,
-      handlePrevPage,
-      handleNextPage,
+      totalPages,
+      pageIndexs,
+      disablePrevPage,
+      disableNextPage,
+      nextPage,
+      loadPageIndex,
+      previousPage,
     };
   },
 });

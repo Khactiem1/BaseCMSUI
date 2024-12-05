@@ -9,8 +9,8 @@
               <!-- ô check box -->
               <th class="fix" style="width: 40px;" v-if="multiple">
                 <ms-checkbox 
-                  :checked="isShowCheckAllRecord" 
-                  @custom-handle-click-checkbox="handleClickCheckbox(true, listID)"
+                  :checked="isCheckedAll" 
+                  @custom-handle-click-checkbox="changeCheckedMultiple"
                 >
                 </ms-checkbox>
               </th>
@@ -67,7 +67,8 @@
             >
               <!-- ô check box -->
               <td v-if="multiple" class="column-sticky">
-                <ms-checkbox :checked="false"
+                <ms-checkbox 
+                  :checked="isSelected(row)"
                   @custom-handle-click-checkbox="handleClickCheckbox(row)"
                 ></ms-checkbox>
               </td>
@@ -81,7 +82,8 @@
                 :class="`${index === columnx.length - 1 ? 'header-content-end':''} ${ col.formatType === $ms.constant.FormatType.Number ? 'right' : '' }`"
                 :key="index" 
               >
-                <span class="data-table-bind" :class="`${lineClamp}`">
+                <slot v-if="col.type === 'custom'" :name="col.dataField" :record="row" />
+                <span v-else class="data-table-bind" :class="`${lineClamp}`">
                   {{ $ms.commonFn.processDataaGridViewer(col, row[col.dataField]) }}
                 </span>
                 <!-- <div v-if="col.TypeFormat.IsImage === true" class="image-table">
@@ -137,7 +139,7 @@
       <div class="total-record">
         {{ $t('i18nCommon.total') }}: <strong>{{ pageTotal }}</strong> {{ $t('i18nCommon.record') }}
       </div>
-      <div class="paging">
+      <div v-if="pagination" class="paging">
         <ms-combobox
           :data="[
             { value: 10, header: $t('i18nEnum.Pagination.Ten') },
@@ -154,10 +156,10 @@
           v-model="currentPage"
         ></ms-combobox>
         <ms-pagination
-          :totalCount="pageTotal"
-          :countRecordPageRecord="gridInfo.pageSize"
-          @custom-handle-select-paging="selectPaging"
-          :key="gridInfo.pageSize"
+          :pageSize="gridInfo.pageSize"
+          :pageTotal="pageTotal"
+          :pageIndex="gridInfo.pageIndex"
+          @load-page-index="loadPageIndex"
         ></ms-pagination>
       </div>
     </div>
@@ -182,13 +184,6 @@ export default defineComponent({
     draggable
   },
   props: {
-    /**
-		 * Value thực hiện lưu giá trị các cột được chọn
-		 */
-		selected: {
-			type: Array,
-			default: [],
-		},
     /**
      * Dữ liệu đang binding
      */
@@ -216,17 +211,23 @@ export default defineComponent({
 				 * Số lượng bản ghi trên 1 trang
 				 */
 				pageSize: 20,
+        /**
+         * Page đang hiển thị
+         */
+        pageIndex: 1,
       },
     },
 
     /**
 		 * Các thuộc tính trong columns
-		 * @params dataField Field dữ liệu dùng để nhận giá trị thay đổi và hiện thị.
-		 * @params title:Tiêu đề của cột
-		 * @params width:độ rộng của cột
-		 * @params autoResize:Cột tự động to ra khi màn hình lớn
-		 * @params formatType:Dữ liệu dùng để format lấy từ trong file enumeration.js FormatType
-		 * @params template:Sử dụng 1 file khác ở ngoài truyền vào để render
+		 * @params lock: Có đang cố định cột.
+		 * @params width: độ rộng của cột
+		 * @params header: Tiêu đề của cột
+		 * @params dataField: Trường dữ liệu
+		 * @params type: Kiểu trường type custom
+		 * @params formatType: Kiểu dữ liệu
+		 * @params headerCustom: Tiêu đề của cột custom bởi người dùng
+		 * @params visible: Có show cột này hay không
 		 */
     columns: {
 			type: Array,
@@ -294,19 +295,72 @@ export default defineComponent({
 
     const colFilter = ref({}); // Dữ liệu cột đang thực hiện show filter
 
-    /** Hàm xử lý checkbox value true thì là check ô tất cả check, value là 0,1,2 là xử lý các phần tử được check
-     * Khắc Tiềm - 08.03.2023 */
-    const handleClickCheckbox = (value: any, listID: any = []) => {
-      try {
-        if (value === true) {
-          // this.store.dispatch(`${this.Module}/setAllCheckboxRecordAction`, listID);
-        } else {
-          // this.store.dispatch(`${this.Module}/setCheckboxRecordAction`, value);
-        }
-      } catch (e) {
-        console.log(e);
+    /** 
+     * Hàm xử lý checkbox value true thì là check ô tất cả check, value là 0,1,2 là xử lý các phần tử được check
+     * Khắc Tiềm - 08.03.2023 
+     * */
+    const handleClickCheckbox = (row: any) => {
+      const me: any = proxy;
+      const indexRowSelected = me.gridInfo.selected.findIndex((item: any) => item[me.idField] == row[me.idField]);
+      if (indexRowSelected !== -1){
+        me.gridInfo.selected.splice(indexRowSelected, 1);
+      }
+      else{
+        me.gridInfo.selected.push(row);
       }
     }
+
+    /**
+		 * Kiểm tra xem cột được check hay không ?
+		 * duyệt trong data nếu có chưa dữ liệu của dòng tương ứng thì return true ngược lại false
+		 * @param dataRow dữ liệu của dòng được check
+		 *  */
+		const isSelected = (dataRow: any) => {
+			const me: any = proxy;
+			if (me.gridInfo.selected && me.gridInfo.selected.length > 0) {
+				return me.gridInfo.selected.findIndex((x: any) => x[me.idField] === dataRow[me.idField]) === -1 ? false : true;
+			}
+			return false;
+		};
+
+    
+    /**
+     * Ẩn hiện check tất cả
+     * Khắc Tiềm - 15.09.2022
+     */
+     const isCheckedAll = computed(()=> {
+      const me: any = proxy;
+      if(me.idField && me.multiple && me.data && me.gridInfo.selected){
+        const lstDataxID: any [] = me.data.map((_: any) => _[me.idField]);
+        const countDataSelectInDatax = me.gridInfo.selected.filter((_: any) => lstDataxID.includes(_[me.idField]));
+        if(countDataSelectInDatax?.length && countDataSelectInDatax.length === lstDataxID.length){
+          return true;
+        }
+        return false;
+      }
+    });
+
+    /**
+     * Xử lý check all hoặc bỏ check all toàn bộ rowData
+     */
+    const changeCheckedMultiple = () => {
+      const me: any = proxy;
+      if(isCheckedAll.value){
+        me.data.forEach((row: any) => {
+          const indexSelectRow = me.gridInfo.selected.findIndex((_: any) => _[me.idField] == row[me.idField]);
+          if (indexSelectRow !== -1){
+            me.gridInfo.selected.splice(indexSelectRow, 1);
+          }
+        });
+      }
+      else{
+        me.data.forEach((row: any) => {
+          if (!me.gridInfo.selected.find((_: any) => _[me.idField] == row[me.idField])){
+            me.gridInfo.selected.push(row);
+          }
+        });
+      }
+    };
 
     const dragging = ref(false);
 
@@ -375,7 +429,7 @@ export default defineComponent({
     /**
      * Chuyển trang
      */
-    const selectPaging = (value: any) => {
+    const loadPageIndex = (value: any) => {
       const me: any = proxy;
       me.gridInfo.pageIndex = value;
       me.loadData();
@@ -420,6 +474,7 @@ export default defineComponent({
         }
         isShowFilter.value = !isShowFilter.value;
         if(isRelaodFilter){
+          me.gridInfo.pageIndex = 1;
           me.loadData();
         }
       } catch (e) {
@@ -443,36 +498,6 @@ export default defineComponent({
       }
       me.loadData();
     }
-
-    /**
-     * Danh sách chứa các id
-     * Khắc Tiềm - 15.09.2022
-     */
-    const listID = computed(()=> {
-      // return BaseComponent.value.recordList.reduce((acc: any, cur: any)=> {
-      //   return [...acc, cur[BaseComponent.value.actionTable.fieldId]];
-      // },[]); 
-      return [];
-    });
-    /**
-     * Ẩn hiện check tất cả
-     * Khắc Tiềm - 15.09.2022
-     */
-    const isShowCheckAllRecord = computed(()=> {
-      // if(BaseComponent.value.checkShowActionSeries){
-      //   let count = 0;
-      //   BaseComponent.value.checkShowActionSeries.forEach((item: any) => {
-      //     if(listID.value.includes(item)){
-      //       count++;
-      //     }
-      //   })
-      //   return count === BaseComponent.value.recordList.length && count > 0;
-      // }
-      // else{
-      //   return false;
-      // }
-      return false;
-    });
 
     /**
 		 * Xử lý build tham số sort grid
@@ -668,15 +693,16 @@ export default defineComponent({
       currentPage,
       columnx,
       dragging,
-      isShowCheckAllRecord,
-      listID,
+      isCheckedAll,
       isShowFilter,
       setPositionFilter,
-      selectPaging,
+      isSelected,
+      loadPageIndex,
       handleSetSortColumn,
       handleShowFilter,
       buildSortFilter,
       getFilterHeader,
+      changeCheckedMultiple,
       handleClickCheckbox,
       initColumns,
       handleFixColumn,

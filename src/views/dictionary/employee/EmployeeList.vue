@@ -22,8 +22,8 @@
         <button class="table-function_series toggle-list">
           <span>{{ $t('i18nCommon.batch_execution') }}</span>
           <div class="table-function_series-icon"></div>
-          <div v-show="true" class="table-list_action">
-            <div class="list_action-item" @click="">{{ $t('i18nEnum.ModelState.Delete') }}</div>
+          <div v-show="true" class="table-list_action" v-if="gridInfo.selected?.length">
+            <div class="list_action-item" @click="deleteMultiple">{{ $t('i18nEnum.ModelState.Delete') }}</div>
           </div>
         </button>
         <list-condition-filter :grid="$refs[viewRef]" @loadData="loadData"></list-condition-filter>
@@ -49,6 +49,9 @@
       :loadData="loadData"
       @handleDoubleClickRow="edit"
     >
+      <template #employee_name="{ record }">
+        {{ record.employee_code }} / {{ record.employee_name }}
+      </template>
       <template #widget-body="{ record }">
         <div class="widget-container">
           <button @click="edit(record)" class="action-table action-table_left">

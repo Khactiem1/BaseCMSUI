@@ -184,7 +184,9 @@ export default {
 			const me: any = this;
 			clearTimeout(me.timeoutId);
 			me.timeoutId = setTimeout(() => {
-				me.loadData();
+				if(typeof me.$refs[me.viewRef]?.loadPageIndex === 'function'){
+					me.$refs[me.viewRef].loadPageIndex(1);
+				}
 			}, 500);
 		},
 
@@ -303,6 +305,44 @@ export default {
 				let res = await me.storeModule.delete(record);
 				me.$ms.commonFn.unmask();
 				if (res?.Success){
+					if(!me.storeModule.items.length){
+						if(typeof me.$refs[me.viewRef]?.loadPageIndex === 'function'){
+							me.$refs[me.viewRef].loadPageIndex(1);
+						}
+					}
+					me.$ms.commonFn.pushNotification({
+						type: me.$ms.constant.ENotificationType.Success,
+						message: me.$t('i18nCommon.crud.delete_success'),
+					});
+				}
+			}
+		},
+
+		/**
+		 * Xoá nhiều bản ghi 1 lúc
+		 * @author nktiem 05.12.2024
+		 */
+		async deleteMultiple(){
+			const me: any = this;
+			const result = await showAlert(me.$t('i18nCommon.AskDeleteRecord'));
+			if(result){
+				const lstID: any [] = me.gridInfo.selected.map((_: any) => _[me.storeModule._config.field.key]);
+				me.$ms.commonFn.mask();
+				let res = await me.api.deleteMultiple(lstID);
+				me.$ms.commonFn.unmask();
+				if (res?.Success){
+					lstID.forEach((_: any) => {
+						let idxRemove = me.storeModule.items.findIndex((row: any) => row[me.storeModule._config.field.key] === _);
+						if (idxRemove !== -1){
+							me.storeModule.items.splice(idxRemove, 1);
+						}
+					});
+					me.gridInfo.selected = [];
+					if(!me.storeModule.items.length){
+						if(typeof me.$refs[me.viewRef]?.loadPageIndex === 'function'){
+							me.$refs[me.viewRef].loadPageIndex(1);
+						}
+					}
 					me.$ms.commonFn.pushNotification({
 						type: me.$ms.constant.ENotificationType.Success,
 						message: me.$t('i18nCommon.crud.delete_success'),
