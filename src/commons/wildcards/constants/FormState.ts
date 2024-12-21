@@ -15,6 +15,10 @@ export const FormState = {
    */
   Edit: 2,
   /**
+   * Xoá
+   */
+  Delete: 3,
+  /**
    * Nhân bản
    */
   Duplicate: 4,

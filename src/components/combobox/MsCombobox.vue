@@ -352,8 +352,9 @@ export default defineComponent({
           isValid.value = false;
         }
         if(modelValue.value || modelValue.value === 0){
-          context.emit("update:textField", data.value.find((item: any) => item[value.value] === modelValue.value)[header.value]);
-          context.emit("update:textCode", data.value.find((item: any) => item[value.value] === modelValue.value)[headerCode.value]);
+          let rowMap = data.value.find((item: any) => item[value.value] === modelValue.value);
+          context.emit("update:textField", rowMap ? rowMap[header.value] : null);
+          context.emit("update:textCode", rowMap ? rowMap[headerCode.value] : null);
         }
         else{
           context.emit("update:textField", '');
@@ -862,7 +863,7 @@ export default defineComponent({
 }
 .combobox-combobox_select-content{
   overflow-y: auto;
-  max-height: 170px;
+  max-height: 280px;
 }
 .combobox-select.active .combobox-combobox_select {
   opacity: 1;

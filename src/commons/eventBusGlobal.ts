@@ -15,22 +15,7 @@ export default {
  * Bắt buộc có globalEvent nào đều phải cấu hình vào đây để không bị trùng tên
  */
 const GlobalEventName = {
-  /**
-   * Xử lý đóng tất form
-   */
-  closeAllPopup: 'closeAllPopup',
-  scrollEvent: 'scrollEvent',
-  reloadList: 'reloadList',
-  resetPopupCenter: 'resetPopupCenter',
-  setWaitingConfirm: 'setWaitingConfirm',
-  showHelpViewHistory: 'showHelpViewHistory',
-  sortEvent: 'sortEvent',
-  updateNotification: 'updateNotification',
-  closeAllDropdown: 'closeAllDropdown',
-  controlFocus: 'controlFocus',
-  controlBlur: 'controlBlur',
-  gridFocus: 'gridFocus',
-  gridBlur: 'gridBlur',
+  updateTheSettingClamp: "TheSettingClamp"
 };
 
 export { GlobalEventName };

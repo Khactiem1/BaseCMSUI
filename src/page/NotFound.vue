@@ -1,6 +1,10 @@
 <template>
-  <div>
-    Trang không tồn tại
+  <div class="container-table">
+    <div class="container-table_header">
+      <div class="name-table">
+        <h1>{{ $t('i18nCommon.notFoundPage') }}</h1>
+      </div>
+    </div>
   </div>
 </template>
 

@@ -49,11 +49,11 @@ export default defineComponent({
   props: {
     pageSize: {
       type: Number,
-      default: 20
+      default: 50
     },
     pageTotal: {
       type: Number,
-      default: 20
+      default: 0
     },
     pageIndex: {
       default: 1,

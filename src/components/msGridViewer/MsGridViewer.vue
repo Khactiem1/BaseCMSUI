@@ -1,5 +1,5 @@
 <template>
-  <div class="table-content">
+  <div class="ms-grid-viewer table-content">
     <div class="table-scroll">
       <div class="table-container">
         <table class="table">
@@ -25,37 +25,47 @@
                 @end="dragging = false"
               >
                 <!-- Phần render các cột head -->
-                <!-- 'left': `${BaseComponent.columnFix[index] ? `${BaseComponent.columnFix[index].width}px` : ''}` -->
                 <template #item="{ element, index }">
-                  <th 
-                    :class="`${index === columnx.length - 1 ? 'header-content-end' : ''} ${ element.formatType === $ms.constant.FormatType.Number ? 'right' : '' }`" 
+                  <th
+                    :class="`
+                      ${ index === columnx.length - 1 ? 'header-content-end' : ''} 
+                      ${ element.formatType === $ms.constant.FormatType.Number ? 'right' : '' }
+                      ${ element.lock ? `z3` : ''}
+                    `"
                     :style="
                     { 'min-width': `${element.width}px`, 
                       'width': `${element.width}px`, 
-                      'max-width': `${element.width}px`, 
+                      'max-width': `${element.width}px`,
+                      'position': `${element.lock ? `sticky` : ''}`,
+                      'left': `${element.lock ? `${element.offset}px` : ''}`,
                     }"
                   >
                     <span style="display: flex; line-height: 32px" :class="``" @click="handleSetSortColumn(element)">
-                      <span style="flex: 1; display: inline-block;">{{ element.headerCustom && element.headerCustom.trim() !== '' ? element.headerCustom : $t(`${element.header}`) }}</span>
+                      <span style="flex: 1; display: inline-block;">
+                        {{ 
+                          element.headerCustom && element.headerCustom.trim() !== '' ? 
+                          element.headerCustom : element.header ? $t(`${element.header}`) : element.header
+                        }}
+                      </span>
                       <div 
                         v-if="element.sort"
                         class="sort" 
                         :class="{ 'sortASC': element.sort === 'ASC' }">
                       </div>
                     </span>
-                    <div 
-                      v-if="filterable" @click="handleShowFilter($event, element)" class="mi-header-option"></div>
+                    <div v-if="filterable" @click="handleShowFilter($event, element)" class="mi-header-option"></div>
+                    <div class="ms-resize" @mouseup.stop.prevent="(e: any) => { resizeOff(e, element) }" @mousedown.stop.prevent="(e: any) => { resizeOn(e, element) }"></div>
                   </th>
                 </template>
               </draggable>
               <!-- Phần render các chức năng tác vụ -->
-              <th style="width: 120px; min-width: 120px" class="text-center fix column-end">
+              <th v-if="showAction" style="width: 120px; min-width: 120px" class="text-center fix column-end">
                 {{ $t('i18nCommon.function') }}
               </th>
             </tr>
           </thead>
           <!-- Phần render loader table khi tải dữ liệu -->
-          <ms-grid-loader v-if="loading" :columns="columnx" :lengthList="data.length" ></ms-grid-loader>
+          <ms-grid-loader v-if="loading" :columns="columnx" :lengthList="data.length > 20 ? 20 : data.length" ></ms-grid-loader>
           <!-- Phần render báo table trống khi danh sách trống -->
           <ms-grid-empty v-if="!loading && data.length === 0" ></ms-grid-empty>
           <tbody v-if="!loading">
@@ -73,58 +83,39 @@
                   @custom-handle-click-checkbox="handleClickCheckbox(row)"
                 ></ms-checkbox>
               </td>
-              <!-- Phần render các cột nội dung của table -->
-              <!-- :style="{ 'left': `${BaseComponent.columnFix[index] ? `${BaseComponent.columnFix[index].Width}px` : ''}`, 'position': `${BaseComponent.columnFix[index] ? `sticky` : 'unset'}`}"  -->
-              <!-- ${BaseComponent.columnFix[index] ? `z3`: ``}  -->
-              <!-- @dblclick=" handleClickActionColumTable(BaseComponent.actionTable.actionDefault, row[BaseComponent.actionTable.fieldId])" -->
               <td 
                 v-for="(col, index) in columnx" 
                 :title="$ms.commonFn.processDataaGridViewer(col, row[col.dataField])"
-                :class="`${index === columnx.length - 1 ? 'header-content-end':''} ${ col.formatType === $ms.constant.FormatType.Number ? 'right' : '' }`"
+                :class="`
+                  ${ index === columnx.length - 1 ? 'header-content-end':''} 
+                  ${ col.formatType === $ms.constant.FormatType.Number ? 'right' : '' }
+                  ${ col.lock ? `z3` : ''}
+                `"
                 :key="index" 
+                :style="
+                { 
+                  'position': `${col.lock ? `sticky` : ''}`,
+                  'left': `${col.lock ? `${col.offset}px` : ''}`,
+                }"
               >
                 <slot v-if="col.type === 'custom'" :name="col.dataField" :record="row" />
                 <span v-else class="data-table-bind" :class="`${lineClamp}`">
                   {{ $ms.commonFn.processDataaGridViewer(col, row[col.dataField]) }}
                 </span>
-                <!-- <div v-if="col.TypeFormat.IsImage === true" class="image-table">
-                  <img v-bind:src="row[col.dataField] ? row[col.dataField].includes('/Images/') ? environment.IMAGE_API + row[col.dataField] : '' + row[col.dataField] : ''" alt="">
-                </div> -->
-                <!-- <div v-if="col.TypeFormat.CheckBox === true" class="checkBox">
-                  <ms-checkbox :checked="row[col.dataField]" :lockCheckBox="col.TypeFormat.LockCheckBox"> </ms-checkbox>
-                </div> -->
               </td>
               <!-- Phần render các chức năng tác vụ -->
-              <td class="text-center fix column-end">
+              <td v-if="showAction" class="text-center fix column-end">
                 <div class="action-colum_table">
 										<slot name="widget-body" :record="row" />
                 </div>
               </td>
             </tr>
           </tbody>
-          <!-- Render phần tính tổng -->
-          <!-- <thead v-if="BaseComponent.showTotalColumn && data.length !== 0" class="thead-light table-footer">
-            <tr>
-              <th class="fix" style="text-transform: none; border-right: none;" v-if="BaseComponent.checkShowActionSeries">
-                {{ $t('common.sum') }}
-              </th>
-              <th v-for="(item, index) in BaseComponent.columns" style="text-align: right; border-right: none;"
-                :class="`${BaseComponent.columnFix[index] ? `z3`: ``}`"
-                :style="{ 'min-width': `${item.Width}px`, width: `${item.Width}px`, 'left': `${BaseComponent.columnFix[index] ? `${BaseComponent.columnFix[index].Width}px` : ''}`}"
-                :key="item.Field"
-              >
-                {{ item.Data ?  Base.Comma(item.Data) : "" }}
-              </th>
-              <th style="width: 120px; min-width: 120px; border-right: none;" class="text-center fix z3">
-              </th>
-            </tr>
-          </thead> -->
-
           <!-- Phần render các chức năng tác vụ (khi click vào ô show tác vụ thì sẽ hiển thị)-->
           <teleport to="#app">
             <ms-grid-filter
               v-click-outside="() => handleShowFilter()"
-              :handleFixColumn="handleFixColumn" 
+              @handleFixColumn="handleFixColumn" 
               :handleShowFilter="handleShowFilter" 
               :col="colFilter"
               :setPositionFilter="setPositionFilter"
@@ -182,9 +173,11 @@ import MsPagination from "./MsPagination.vue";
 import MsGridEmpty from "./MsGridEmpty.vue";
 import MsGridLoader from "./MsGridLoader.vue";
 import MsGridFilter from "./MsGridFilter.vue";
-import { watch, ref, getCurrentInstance, computed, defineComponent } from "vue";
+import { watch, ref, getCurrentInstance, computed, defineComponent, onMounted, onBeforeMount, onUnmounted } from "vue";
 import draggable from "vuedraggable";
 import moment from "moment";
+import { useColumnResize } from "@/setup/grid/resizeColumn";
+import EventBusGlobal, { GlobalEventName } from "@/commons/eventBusGlobal";
 
 export default defineComponent({
   components: {
@@ -221,7 +214,7 @@ export default defineComponent({
 				/**
 				 * Số lượng bản ghi trên 1 trang
 				 */
-				pageSize: 20,
+				pageSize: 50,
         /**
          * Page đang hiển thị
          */
@@ -251,6 +244,14 @@ export default defineComponent({
     loading: {
       type: Boolean,
       default: false,
+    },
+
+    /**
+     * Grid có chức năng action hay ko
+     */
+    showAction: {
+      type: Boolean,
+      default: true,
     },
 
     /**
@@ -286,14 +287,6 @@ export default defineComponent({
     },
 
     /**
-     * Số dòng hiển thị dữ liệu trên 1 row
-     */
-    lineClamp: {
-      type: String,
-      default: 'hidden-space_1',
-    },
-
-    /**
      * Hàm load data filter
      */
     loadData: {
@@ -305,6 +298,8 @@ export default defineComponent({
     const { proxy }: any = getCurrentInstance();
 
     const colFilter = ref({}); // Dữ liệu cột đang thực hiện show filter
+    const { resizeOn, resizeOff } = useColumnResize();
+    const lineClamp = ref<any>('') // Số dòng hiển thị dữ liệu trên 1 row;
 
     /** 
      * Hàm xử lý checkbox value true thì là check ô tất cả check, value là 0,1,2 là xử lý các phần tử được check
@@ -381,17 +376,92 @@ export default defineComponent({
       }
     };
 
+    /**
+     * Trạng thái đang kéo thả cột chuyển vị trí cột
+     */
     const dragging = ref(false);
 
     /** Column lấy từ props */
-    const columnx: any = ref(JSON.parse(JSON.stringify(proxy.columns)));
+    const columnx = ref<any []>([]);
+
+    /**
+     * Xử lý onBeforeMount
+     */
+    onBeforeMount(() => {
+      let lineClampStore = localStorage.getItem('lineClamp');
+      if(lineClampStore || lineClampStore == ''){
+        lineClamp.value = lineClampStore;
+      }
+      else{
+        lineClamp.value = 'hidden-space_1';
+      }
+    });
+
+    /**
+     * Xử lý onMounted
+     * Check nếu base ko gọi initColumns thì tự initColumns từ props
+     */
+    onMounted(() => {
+      const me: any = proxy;
+      if(me.columns?.length){
+        initColumns(me.columns);
+      }
+      EventBusGlobal.$on(GlobalEventName.updateTheSettingClamp, haneleUpdateLineClamp);
+    });
+
+    /**
+     * Xử lý onUnmounted
+     */
+    onUnmounted(() => {
+      EventBusGlobal.$off(GlobalEventName.updateTheSettingClamp, haneleUpdateLineClamp);
+    });
+
+    /**
+     * Update cờ hiển thị số dòng trên grid
+     */
+    const haneleUpdateLineClamp = (lineClampStore: any) => {
+      if(lineClampStore || lineClampStore == ''){
+        lineClamp.value = lineClampStore;
+      }
+      else{
+        lineClamp.value = 'hidden-space_1';
+      }
+    };
+
+    /**
+     * Kiểm tra sắp xếp lại cột khi kéo thả
+     */
+    watch(dragging,(newVal)=> {
+      const me: any = proxy;
+      if(newVal === false){
+        me.$nextTick(() => {
+          initColumns(columnx.value);
+        });
+      }
+    })
 
     /**
      * initColumns từ base
      * @param columns
      */
     const initColumns = (columns: any []) => {
-      columnx.value = columns;
+      columnx.value = columns.sort((a, b) => b.lock - a.lock);
+      updateStickyOffset();
+    };
+
+    /**
+     * Xử lý update Sticky cố định cột cho các trường
+     */
+    const updateStickyOffset = () => {
+      const me: any = proxy;
+      let offset = 16;
+      if(me.multiple){
+        offset = offset + 40;
+      }
+      columnx.value.forEach((col) => {
+        col.offset = offset;
+        offset += Number(col.width);
+      });
     };
 
     /**
@@ -412,30 +482,6 @@ export default defineComponent({
       });
       row.selected = true;
     };
-
-    /** Kiểm tra sắp xếp lại cột khi kéo thả */
-    // watch(dragging,(newVal)=> {
-    //   if(newVal === false){
-    //     setupColumns();
-    //   }
-    // })
-
-    /**
-     * Hàm fix column khi người dùng kéo những column bị fix
-     * Khắc Tiềm - 08.03.2023
-     */
-    // const setupColumns = async () => {
-    //   const me: any = proxy;
-    //   const columns: any [] = JSON.parse(JSON.stringify(me.columns));
-    //   await columns.sort((a: any, b: any) => (a.FixColumn === b.FixColumn) ? 0 : a.FixColumn ? -1 : 1);
-    //   // this.store.dispatch(`${this.Module}/setColumnAction`, columns);
-    // }
-
-    /** Kiểm tra sự thay đổi từ Base, nếu thay đổi thì tiến hành update */
-    // const refColumn: any = computed(() => proxy.columns);
-    // watch(refColumn, () => {
-    //   columnx.value = proxy.columns;
-    // })
 
     /**
     * hàm lưu số lượng bản ghi muốn hiển thị vào local
@@ -476,8 +522,10 @@ export default defineComponent({
      */
     const setPositionFilter: any = ref({ top: 0, left: 0});
 
-    const handleFixColumn = () => {
-
+    const handleFixColumn = (col: any) => {
+      col.lock = !col.lock;
+      isShowFilter.value = false;
+      initColumns(columnx.value);
     };
     
     /**
@@ -606,18 +654,6 @@ export default defineComponent({
 										};
 									}
 									break;
-								// case 'ColumnBoolean':
-								// 	let valueFilter = filterValue, operatorFilter = operator;
-								// 	if(filterValue === 0){ // Nếu lọc kiểu chưa tích thì lấy ra những thằng khác với thằng đã tích vì có trường hơp không chọn trường mở rộng thì lưu nó là null
-								// 		valueFilter = 1;
-								// 		operatorFilter = '<>';
-								// 	}
-								// 	item = {
-								// 			field: column.dataField,
-								// 			value: valueFilter,
-								// 			operator: operatorFilter,
-								// 		};
-								// 	break;
 								default:
 									if (typeof filterValue !== 'undefined' && filterValue !== null) {
 										item = {
@@ -719,6 +755,10 @@ export default defineComponent({
       isCheckedAll,
       isShowFilter,
       setPositionFilter,
+      lineClamp,
+      resizeOn,
+      resizeOff,
+      updateStickyOffset,
       isSelected,
       loadPageIndex,
       handleSetSortColumn,
@@ -836,7 +876,7 @@ tbody tr:hover .z3,
 
 .row-selected{
   background-color: #f5ecda !important;
-  .column-sticky, .column-end{
+  .column-sticky, .column-end, td{
     background-color: #f5ecda !important;
   }
 }
@@ -901,8 +941,8 @@ tbody tr.active .z3,
   background-color: var(--while__color);
 }
 .table .thead-light th.fix:first-child:not(.check-false),
-.table tbody th:first-child,
-.table tbody td:first-child {
+.table tbody th:first-child:not(.check-false),
+.table tbody td:first-child:not(.check-false) {
   left: 16px;
 }
 .table .thead-light th.fix:first-child::before,
@@ -948,15 +988,6 @@ tbody tr.active .z3,
   height: 100%;
   display: flex;
   align-items: center;
-}
-.image-table{
-  height: 43px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-} 
-.image-table img{
-  height: 100%;
 }
 .sort{
   width: 16px;
@@ -1048,5 +1079,13 @@ tbody .z3{
   &:hover{
     text-decoration: underline;
   }
+}
+.ms-resize {
+  width: 5px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  cursor: col-resize;
 }
 </style>

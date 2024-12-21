@@ -279,6 +279,17 @@ export default class BaseAPI {
 	}
 
 	/**
+	 * API khôi phục dữ liệu đã bị xoá theo mã
+	 */
+	restoreDataDelete(payload: any){
+		let request = {
+      url: this.getAPIUrl() + '/restore_data_delete',
+      data: payload,
+    };
+    return httpClient.postAsync(request);
+	}
+
+	/**
 	 * Lấy dữ liệu combobox load paging
 	 */
 	getComboboxPaging(payload: any) {
@@ -291,5 +302,19 @@ export default class BaseAPI {
 		};
 
 		return httpClient.postAsync(request);
+	}
+
+	/**
+	 * Export data ra file excel
+	 * @param payload 
+	 * @returns 
+	 */
+	exportData(payload: any){
+		let request = {
+      url: this.getAPIUrl() + '/export_data',
+      data: payload,
+			responseType: 'blob', // Nhận Blob
+    };
+    return httpClient.postAsync(request, false, false, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 	}
 }

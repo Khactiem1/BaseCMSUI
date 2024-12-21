@@ -1,4 +1,7 @@
 import { concat } from "lodash-es";
+import commonFunction from "@/commons/commonFunction";
+import { EnumValidateResult } from "@/commons/wildcards/constants/EnumValidateResult";
+
 /**
  * Base Store Crud pinia
  */
@@ -64,6 +67,17 @@ export default class crudBaseStore{
           //cập nhật danh sách
           me.insertItem(res.Data);
         }
+        else{
+          if(res.Data.length){
+            let duplicateDel = res.Data.filter((_: any) => _.Code == EnumValidateResult.DuplicateDelete);
+            if(duplicateDel?.length){
+              return duplicateDel[0];
+            }
+            else{
+              commonFunction.handleErrorValidateResult(res.Data);
+            }
+          }
+        }
         return res;
       },
 
@@ -76,6 +90,9 @@ export default class crudBaseStore{
         if (res && res.Success) {
           //cập nhật danh sách
           me.updateItem(res.Data);
+        }
+        else{
+          commonFunction.handleErrorValidateResult(res.Data);
         }
         return res;
       },

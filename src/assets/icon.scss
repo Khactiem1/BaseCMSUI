@@ -1,12 +1,20 @@
 .menu-sidebar_icon {
-  background: var(--url__icon) no-repeat;
-  width: 24px;
-  height: 24px;
+  // background: var(--url__icon) no-repeat;
+  margin-top: -3px;
+  font-size: 20px !important;
+  width: 20px;
+  height: 20px;
   &.dashboard{
     background-position: -30px -1629px;
   }
-  &.dictionary{
+  &.list{
     background-position: -335px -1629px;
+  }
+  &.system{
+    background-position: -422px -1630px;
+  }
+  &.statistics{
+    background-position: -547px -1630px;
   }
 }
 .icon24{

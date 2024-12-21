@@ -28,5 +28,8 @@ export default {
     drag: "Kéo thả để thay đổi vị trí",
     selected: "Đã chọn",
     removeSelectedAll: "Bỏ chọn tất cả",
+    line: "Dòng",
+    unlimited: "Không giới hạn",
+    ques_setting_clamp: "Thông tin trên danh sách sẽ hiển thị tối đa bao nhiêu dòng?"
   },
 }

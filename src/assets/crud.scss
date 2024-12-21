@@ -1,3 +1,72 @@
+/* Modal loader */
+/* Chrome, Safari, Opera */
+@-webkit-keyframes loader {
+  from {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+  }
+}
+/* Standard syntax */
+@keyframes loader {
+  from {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+  }
+}
+#mloading{
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background: rgba(221, 221, 221, .2);
+  z-index: 99999;
+  top: 0;
+  left: 0;
+  flex-direction: column;
+  .loading-cover {
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    display: block;
+    position: absolute;
+    z-index: 9998;
+    opacity: .2;
+  }
+  .loading-svg {
+    height: 34px;
+    width: 34px;
+    position: relative;
+    .effects {
+      animation: loader 1s linear 0s infinite;
+      -webkit-animation: loader 1s linear 0s infinite;
+      -moz-animation: loader 1s linear 0s infinite;
+      -o-animation: loader 1s linear 0s infinite;
+      transition: all .3s ease;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 50%;
+      box-sizing: border-box;
+      background: transparent var(--url__loader) no-repeat;
+    }
+  }
+}
+
 /* Phần header table */
 .flex{
   display: flex;
@@ -78,6 +147,15 @@
 }
 .table-list_action hr {
   margin: 0 10px;
+}
+.image-table{
+  height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} 
+.image-table img{
+  height: 100%;
 }
 .list_action-item {
   white-space: nowrap;

@@ -164,9 +164,6 @@ textarea{
   .form-hidden_content .form-item_input + .form-item_input{
     padding-left: 10px;
   }
-  .p-upload_image{
-    padding: 22px 0 0 45px;
-  }
   .separate-line-upload{
     height: 14px;
     width: 1px;
@@ -298,9 +295,6 @@ textarea{
 	margin-bottom: 8px;
 }
 /* modal */
-.modal-body{
-  border-radius: 4px;
-}
 .form-header {
   display: flex;
   justify-content: space-between;

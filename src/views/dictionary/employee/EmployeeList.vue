@@ -6,14 +6,17 @@
       </div>
       <div class="action-table">
         <div class="btn-add">
-					<button @click="add" class="add">{{ $t('i18nEnum.FormState.Add') }}</button>
+          <ms-button @click="add" class="primary">
+            {{ $t('i18nEnum.FormState.Add') }}
+          </ms-button>
+					<!-- <button @click="add" class="add">{{ $t('i18nEnum.FormState.Add') }}</button>
 					<button class="import toggle-list">
             <i class="icon"></i>
             <div class="table-list_action">
               <div @click="" class="list_action-item"><i class="i excel"></i> {{ $t('i18nCommon.export_sample') }}</div>
               <div @click="" class="list_action-item"><i class="i excel"></i> {{ $t('i18nCommon.import') }}</div>
             </div>
-          </button>
+          </button> -->
         </div>
       </div>
     </div>
@@ -25,8 +28,8 @@
             <div class="table-function_series-icon"></div>
             <div v-show="true" class="table-list_action" v-if="gridInfo.selected?.length">
               <div class="list_action-item" @click="deleteMultiple">{{ $t('i18nEnum.ModelState.Delete') }}</div>
-              <div class="list_action-item" @click="toggleActive(gridInfo.selected, false)">{{ $t('i18nEnum.FeatureRow.Active') }}</div>
-              <div class="list_action-item" @click="toggleActive(gridInfo.selected, true)">{{ $t('i18nEnum.FeatureRow.Inactive') }}</div>
+              <div class="list_action-item" @click="toggleActive(gridInfo.selected, true)">{{ $t('i18nEnum.FeatureRow.Active') }}</div>
+              <div class="list_action-item" @click="toggleActive(gridInfo.selected, false)">{{ $t('i18nEnum.FeatureRow.Inactive') }}</div>
             </div>
           </button>
           <menu-wrapper class="topnav-widget-more-container" :hideInContent="false" :position="{ at: 'left bottom', my: 'left top' }">
@@ -79,7 +82,7 @@
           :placeholder="$t('i18nCommon.search')"
         />
         <div class="action-render_table reload-table" @click="loadData" :content="$t('i18nCommon.load_data')"></div>
-        <div class="action-render_table export-data" :content="$t('i18nCommon.export_excel')"></div>
+        <div class="action-render_table export-data" @click="exportData" :content="$t('i18nCommon.export_excel')"></div>
         <div class="action-render_table setting-table" @click="configLayout" :content="$t('i18nCommon.customize_interface')"></div>
       </div>
     </div>
@@ -93,9 +96,22 @@
       :loadData="loadData"
       @handleDoubleClickRow="edit"
     >
-      <template #employee_name="{ record }">
+      <!-- /// Phần comment này test cho ae nào muốn custom hiển thị dữ liệu của cell row data này ra bên ngoài, ko render theo base grid 
+        để cấu hình custom hiển thị như này ae chỉ cần cấu hình layout cho cột này với "type": "custom",
+        ví dụ: {
+            "lock": false,
+            "width": 250,
+            "header": "i18nEmployee.Detail.employee_name",
+            "dataField": "employee_name",
+            "type": "custom",
+            "formatType": 12,
+            "headerCustom": "",
+            "visible": true
+        }, 
+      -->
+      <!-- <template #employee_name="{ record }">   
         {{ record.employee_code }} / {{ record.employee_name }}
-      </template>
+      </template> -->
       <template #widget-body="{ record }">
         <div class="widget-container">
           <button @click="edit(record)" class="action-table action-table_left">
@@ -114,11 +130,11 @@
               <menu-item class="menu-item-feture" @menu-item-click="deleteRow(record)">
                 <span>{{ $t('i18nEnum.FeatureRow.Delete') }}</span>
               </menu-item>
-              <menu-item class="menu-item-feture" v-if="record.inactive" @menu-item-click="toggleActive([record], false)">
-                <span>{{ $t('i18nEnum.FeatureRow.Active') }}</span>
+              <menu-item class="menu-item-feture" v-if="record.is_active" @menu-item-click="toggleActive([record], false)">
+                <span>{{ $t('i18nEnum.FeatureRow.Inactive') }}</span>
               </menu-item>
               <menu-item class="menu-item-feture" v-else @menu-item-click="toggleActive([record], true)">
-                <span>{{ $t('i18nEnum.FeatureRow.Inactive') }}</span>
+                <span>{{ $t('i18nEnum.FeatureRow.Active') }}</span>
               </menu-item>
             </template>
           </menu-wrapper>

@@ -9,20 +9,20 @@
     <div class="content-header_info">
       <button class="header-bell_setting">
         <ul>
-          <li>
+          <li @click="openSettingClamp">
             {{ $t('i18nCommon.SettingDisplay') }}
           </li>
         </ul>
       </button>
       <button class="header-user">
         <div class="header-user_avatar"></div>
-        <div class="header-user_name">{{ "Khắc Tiềm" }}</div>
+        <div class="header-user_name">{{ user.user_full_name }}</div>
         <div class="header-user_icon"></div>
         <ul style="width: 150px;">
           <li>
             {{ $t('i18nCommon.ChangePass') }}
           </li>
-          <li>
+          <li @click="handleLogout">
             {{ $t('i18nCommon.Logout') }}
           </li>
         </ul>
@@ -32,7 +32,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, getCurrentInstance } from "vue";
+import { defineComponent, getCurrentInstance, onBeforeMount, ref } from "vue";
+import popupUtil from '@/commons/popupUtil';
 
 export default defineComponent({
   props: {
@@ -43,6 +44,15 @@ export default defineComponent({
   },
   setup(){
     const { proxy } : any = getCurrentInstance();
+    const user = ref<any>({});
+
+    onBeforeMount(() => {
+      const me: any = proxy;
+      const userStore = me.$ms.commonFn.getUser();
+      if(userStore){
+        user.value = userStore;
+      }
+    });
 
     /**
      * Xử lý toggle LeftMenu
@@ -53,7 +63,25 @@ export default defineComponent({
       localStorage.setItem("showSidebar", me.settingApp.showSidebar);
     }
 
+    /**
+     * Mở setting grid
+     */
+    const openSettingClamp = () => {
+      popupUtil.show("TheSettingClamp");
+    }
+
+    /**
+     * Đăng xuất
+     */
+    const handleLogout = async () => {
+      const me = proxy;
+      me.$ms.commonFn.logout();
+    };
+
     return {
+      user,
+      handleLogout,
+      openSettingClamp,
       handleClickToggleLeftMenu,
     }
   }

@@ -28,5 +28,8 @@ export default {
     drag: "Drag and drop to change position",
     selected: "Selected",
     removeSelectedAll: "Remove selected all",
+    line: "Line",
+    unlimited: "Unlimited",
+    ques_setting_clamp: "How many lines will the information on the list display?",
   },
 }

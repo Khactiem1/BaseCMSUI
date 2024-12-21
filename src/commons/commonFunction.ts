@@ -4,6 +4,7 @@ import moment from 'moment';
 import DOMPurify from 'dompurify';
 import { FormatType } from './wildcards/constants';
 import { msFormat } from './msFormat';
+import { showError } from '@/commons/globalMessage';
 const i18n = i18nGlobal.global;
 
 /**
@@ -77,6 +78,41 @@ class CommonFunction {/**
     sessionStorage.clear();
     location.href = window._externalServiceConfig.appUrl;
   }
+
+	/**
+	 * Lấy ra user đang đăng nhập
+	 */
+	getUser(){
+		const user = localStorage.getItem('user');
+		if(user){
+			return JSON.parse(user);
+		}
+	}
+
+	/**
+	 * Xử lý lỗi ValidateResult từ BE
+	 */
+	handleErrorValidateResult(validateResults: any []){
+		if(validateResults?.length){
+			const message: string [] = [];
+			validateResults.forEach((rule: any) => {
+				if(rule.ErrorMessage){
+					message.push(i18n.t(rule.ErrorMessage));
+				}
+			});
+			if(message.length){
+				showError(message.join("; "));
+			}
+		}
+	}
+
+	/**
+	 * Lưu user vào local store
+	 */
+	setUser(user: any){
+		localStorage.setItem('user', JSON.stringify(user));
+	}
+
   /**
 	 * Lấy giá trị enum theo text
 	 */
@@ -396,6 +432,132 @@ class CommonFunction {/**
 			default:
 				break;
 		}
+	}
+
+	/**
+	 * Thực hiện sắp xếp cây để bind lên grid
+	 */
+	sortMenuAndAddLevel(
+		menuList: any[],
+		parentField: string,
+		idField: string,
+		sortField: string
+	): any[] {
+		const menuMap = new Map<string | null, any[]>();
+	
+		// Tạo bản đồ nhóm các phần tử theo parentField
+		menuList.forEach((menu) => {
+			const parentId = menu[parentField];
+			if (!menuMap.has(parentId)) {
+				menuMap.set(parentId, []);
+			}
+			menuMap.get(parentId)!.push(menu);
+		});
+	
+		// Xác định is_parent cho từng bản ghi
+		menuList.forEach((menu) => {
+			menu.is_parent = menuMap.has(menu[idField]);
+			if (menu.is_parent && !menu.hasOwnProperty('expand')) {
+				menu.expand = true;
+			}
+		});
+	
+		// Xác định các bản ghi có parent_id không tồn tại trong danh sách menu
+		const orphanRecords: any[] = [];
+		menuList.forEach((menu) => {
+			const parentId = menu[parentField];
+			if (parentId && !menuList.some((item) => item[idField] === parentId)) {
+				orphanRecords.push(menu);
+				menu[parentField] = null; // Coi như không có cha
+			}
+		});
+	
+		// Thêm các bản ghi không có cha vào nhóm parent_id = null
+		orphanRecords.forEach((orphan) => {
+			if (!menuMap.has(null)) {
+				menuMap.set(null, []);
+			}
+			menuMap.get(null)!.push(orphan);
+		});
+	
+		// Hàm đệ quy thu thập và thêm cấp độ
+		const collectSortedItems = (parentId: string | null, level: number): any[] => {
+			const children = menuMap.get(parentId) || [];
+			// Sắp xếp các phần tử theo sortField
+			children.sort((a, b) => a[sortField] - b[sortField]);
+	
+			// Thêm cấp độ và thu thập con, cháu...
+			return children.flatMap((child) => {
+				child.level = level; // Gán cấp độ hiện tại
+				return [child, ...collectSortedItems(child[idField], level + 1)];
+			});
+		};
+	
+		// Bắt đầu thu thập từ các phần tử gốc (parentField = null) với level = 1
+		return collectSortedItems(null, 1);
+	}
+
+	/**
+	 * Update toàn bộ giá trị cho con 
+	 */
+	updateChildrenIsHide(
+		isHide: boolean,
+		menuList: any[],
+		parentField: string,
+		idField: string,
+		parentId: any
+	): void {
+		const updateChildren = (currentParentId: any) => {
+			menuList.forEach((item) => {
+				if (item[parentField] === currentParentId) {
+					item.is_hide = isHide; // Cập nhật giá trị is_hide
+					if(!isHide && item.hasOwnProperty('expand')){
+						item.expand = true;
+					}
+					updateChildren(item[idField]); // Đệ quy để xử lý các cấp con
+				}
+			});
+		};
+	
+		updateChildren(parentId); // Bắt đầu từ cha truyền vào
+	}
+
+	/**
+	 * Xoá toàn bộ cha con, cháu chắt của 1 mảng tree với id cha truyền vào
+	 */
+	deleteHierarchyTree(
+		menuList: any[], // Mảng dữ liệu
+		parentField: string, // Tên field cha
+		idField: string, // Tên field con
+		parentId: string | null // ID cha cần xóa
+	): any[] {
+		// Hàm đệ quy để thu thập tất cả các ID cần xóa
+		const collectIdsToDelete = (id: string | null, list: any[]): Set<string> => {
+			const idsToDelete = new Set<string>();
+	
+			// Duyệt qua tất cả các phần tử để tìm các con trực tiếp
+			const stack = [id];
+			while (stack.length > 0) {
+				const currentId = stack.pop();
+				if (!currentId) continue;
+				idsToDelete.add(currentId);
+	
+				// Tìm các con của currentId
+				list.forEach((item) => {
+					if (item[parentField] === currentId) {
+						stack.push(item[idField]);
+					}
+				});
+			}
+	
+			return idsToDelete;
+		};
+	
+		// Thu thập tất cả các ID cần xóa
+		const idsToDelete = collectIdsToDelete(parentId, menuList);
+	
+		// Lọc lại menuList để loại bỏ các phần tử có ID nằm trong idsToDelete
+		return menuList.filter((item) => !idsToDelete.has(item[idField]));
 	}
 }
 export default new CommonFunction();

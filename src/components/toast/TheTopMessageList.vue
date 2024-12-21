@@ -43,7 +43,7 @@ export default defineComponent({
   right: 0;
   min-width: 450px;
   max-width: 450px;
-  z-index: 20;
+  z-index: 1000;
   margin-right: 10px;
   margin-top: 10px;
   transition: all ease 0.2s;

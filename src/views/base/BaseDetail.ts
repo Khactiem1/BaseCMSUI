@@ -1,13 +1,19 @@
 import { mixinSuper } from '@/mixins/common/mixinSuper';
+import { permission } from '@/mixins/common/permission';
 import { showError, showAlert } from '@/commons/globalMessage';
+import { cloneDeep } from 'lodash-es';
 
 /**
  * Các thông tin chung của màn hình chi tiết
  */
 export default {
-	mixins: [mixinSuper],
+	mixins: [mixinSuper, permission],
 	data() {
 		return {
+      /**
+			 * refname control hiển thị dữ liệu: grid/tree
+			 */
+			viewRef: 'viewList',
 			/**
 			 * Store của module kế thừa base
 			 */
@@ -100,17 +106,40 @@ export default {
 		},
 
     /**
+     * Hàm xử lý thêm dữ liệu trùng với dữ liệu đã xoá
+     */
+    async handleDuplicateDataDelete(){
+      const me: any = this;
+      const ask = await showAlert(me.$t('i18nCommon.AskRestoreDuplicateData'));
+      if(ask){
+        me.$ms.commonFn.mask();
+        const result = await me.api.restoreDataDelete(me.model);
+        me.$ms.commonFn.unmask();
+        if(result?.Success && result?.Data){
+          me.model[me.storeModule._config.field.key] = result.Data[me.storeModule._config.field.key];
+          me.storeModule.insertItem(me.model);
+          me.editMode = me.$ms.constant.FormState.Edit;
+          me.$ms.commonFn.pushNotification({
+            type: me.$ms.constant.ENotificationType.Success,
+            message: me.$t('i18nCommon.crud.restore_success'),
+          });
+        }
+      }
+    },
+
+    /**
      * Xử lý cất dữ liệu
      */
     async save(){
       const me: any = this;
-      await me.beforeSave();
+      const dataSubmit = cloneDeep(me.model);
+      await me.beforeSave(dataSubmit);
       if(await me.validateSave()){
         let saveSuccess = false;
         me.$ms.commonFn.mask();
         switch (me.editMode) {
           case me.$ms.constant.FormState.Add:
-            const resultSave = await me.storeModule.insert(me.model);
+            const resultSave = await me.storeModule.insert(dataSubmit);
             if (resultSave?.Success){
               me.$ms.commonFn.pushNotification({
                 type: me.$ms.constant.ENotificationType.Success,
@@ -118,9 +147,12 @@ export default {
               });
               saveSuccess = true;
             }
+            else if (resultSave.Code == me.$ms.constant.EnumValidateResult.DuplicateDelete){
+              await me.handleDuplicateDataDelete();
+            }
             break;
           case me.$ms.constant.FormState.Edit:
-            const resultEdit = await me.storeModule.update(me.model);
+            const resultEdit = await me.storeModule.update(dataSubmit);
             if (resultEdit?.Success){
               me.$ms.commonFn.pushNotification({
                 type: me.$ms.constant.ENotificationType.Success,
@@ -143,7 +175,7 @@ export default {
     /**
      * Xử lý trước khi save
      */
-    async beforeSave(){
+    async beforeSave(model){
 
     },
 

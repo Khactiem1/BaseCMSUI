@@ -1,15 +1,17 @@
 import { mixinSuper } from '@/mixins/common/mixinSuper';
+import { permission } from '@/mixins/common/permission';
 import { showAlert } from '@/commons/globalMessage';
 import popupUtil from '@/commons/popupUtil';
 import layoutAPI from '@/apis/dictionary/layoutAPI';
 import memoryCache from '@/cache/memoryCache';
+import moment from "moment";
 
 /**
  * Các thông tin chung của màn hình danh sách
  * Sử dụng chung cho danh sách và báo cáo động
  */
 export default {
-	mixins: [mixinSuper],
+	mixins: [mixinSuper, permission],
 	data() {
 		return {
 			/**
@@ -49,7 +51,7 @@ export default {
 				/**
 				 * Số lượng bản ghi trên 1 trang
 				 */
-				pageSize: 20,
+				pageSize: 50,
 
 				/**
 				 * Page đang hiển thị
@@ -70,6 +72,11 @@ export default {
 			 * Cấu hình tên form detail
 			 */
 			formDetailName: '',
+
+			/**
+			 * Có lấy lên cột trạng thái hay ko
+			 */
+			isLoadActiveColumn: true,
 		};
 	},
 	created() {
@@ -79,9 +86,13 @@ export default {
 			me.gridInfo.pageSize = Number(pageSizeCache);
 		}
 	},
-	mounted() {
+	async mounted() {
 		const me: any = this;
-		me.initLayout();
+		await me.initLayout();
+		//load dữ liệu lần đầu
+		me.$nextTick(() => {
+			me.loadData();
+		});
 	},
 	/**
 	 * Xóa items trong grid khi unmount
@@ -103,10 +114,6 @@ export default {
 				await me.customLayout(layout);
 				me.applyLayout(layout);
 			}
-			//load dữ liệu lần đầu
-			me.$nextTick(() => {
-				me.loadData();
-			});
 		},
 
 		/**
@@ -116,7 +123,7 @@ export default {
 			const me: any = this;
 			let param = {
 				PageIndex: 1,
-				PageSize: 20,
+				PageSize: 50,
 				Columns: '',
 				Filter: '',
 				Sort: '',
@@ -152,6 +159,7 @@ export default {
 					param.Columns = param.Columns.concat(`${me.storeModule._config.field.key}`);
 				}
 			}
+			me.addColActiveParam(param);
 
 			// Xử lý paging
 			param.PageSize = me.gridInfo.pageSize;
@@ -160,6 +168,18 @@ export default {
 			// Xử lý build Filter
 			param.Filter = me.buildFilterParam();
 			param.Sort = me.buildSortFilter();
+		},
+
+		/**
+		 * Xử lý lấy thêm cột trạng thái mặc định sẽ lấy
+		 */
+		addColActiveParam(param: any){
+			const me: any = this;
+			if(!param.Columns) return;
+			const columns: any [] = param.Columns.split(',');
+			if(!columns.includes('is_active') && me.isLoadActiveColumn){
+				param.Columns = param.Columns.concat(',is_active');
+			}
 		},
 
 		/**
@@ -244,8 +264,6 @@ export default {
 			}
 		},
 	
-		
-	
 		/**
 		 * Custom lại layout
 		 */
@@ -277,7 +295,7 @@ export default {
 		 * @param records danh sách bản ghi
 		 * @param value giá trị update
 		 */
-		async toggleActive(records: any [], value: boolean ){
+		async toggleActive(records: any [], value: boolean){
 			const me: any = this;
 			const lstID = records.map((_: any) => _[me.storeModule._config.field.key]);
 			let data = {
@@ -290,7 +308,7 @@ export default {
 			if(res?.Success){
 				me.storeModule.items.forEach((row: any) => {
 					if(lstID.includes(row[me.storeModule._config.field.key])){
-						row.inactive = value;
+						row.is_active = value;
 					}
 				});
 			}
@@ -361,6 +379,9 @@ export default {
 		 */
 		async edit(record: any){
 			const me: any = this;
+			if(me.subSystemCode && !me.checkActionPermission("Edit")){
+				return;
+			}
 			me.$ms.commonFn.mask();
 			let payload = { id: record[me.storeModule._config.field.key] }
 			let res = await me.api.getEdit(payload);
@@ -415,11 +436,67 @@ export default {
 				let param = {
 					columns: JSON.parse(JSON.stringify(columns)),
 					layoutTag: me.layoutTag,
-					initLayout: me.initLayout,
+					initLayout: async (columns: any []) => {
+						await me.initLayout(columns);
+						me.$nextTick(() => {
+							me.loadData();
+						});
+					},
 				}
 				popupUtil.show('MsConfigLayoutList', param);
 			}
-		}
+		},
+		
+		/**
+		 * Xuất khẩu dữ liệu ra excel
+		 */
+		async exportData(){
+			const me: any = this;
+			let exportDataParam = {
+				SheetName: "",
+				Title: "",
+				HeaderColumns: [] as any [],
+				Param: {
+					PageIndex: 0,
+					PageSize: 0,
+					Columns: '',
+					Filter: '',
+					Sort: '',
+					CustomParam: {},
+				},
+			};
+			await me.processParamLoadData(exportDataParam.Param);
+			await me.customParamLoadData(exportDataParam.Param);
+			exportDataParam.Param.PageIndex = 0;
+			exportDataParam.Param.PageSize = 0;
+			let title = me.$el.querySelector('.name-table h1');
+			if(title?.innerText){
+				exportDataParam.Title = title.innerText;
+				exportDataParam.SheetName = title.innerText;
+			}
+			if(me.$refs[me.viewRef] && typeof me.$refs[me.viewRef].columnx?.length){
+				me.$refs[me.viewRef].columnx.forEach((col: any) => {
+					exportDataParam.HeaderColumns.push({
+						DataField: col.dataField,
+						FormatType: Number(col.formatType),
+						Header: col.headerCustom && col.headerCustom.trim() !== '' ? col.headerCustom : me.$t(col.header),
+						Width: Number(col.width),
+						EnumResources: col.formatType == me.$ms.constant.FormatType.Enum ? me.$ms.commonFn.getEnumSource(col.enum) : null,
+					});
+				});
+				me.$ms.commonFn.mask();
+				let res = await me.api.exportData(exportDataParam);
+				me.$ms.commonFn.unmask();
+				if(res){
+					const url = window.URL.createObjectURL(res); // Tạo URL từ Blob
+					const link = document.createElement('a'); // Tạo thẻ <a> để tải file
+					link.href = url;
+					link.download = `${exportDataParam.SheetName}_${moment(new Date).format('DD/MM/YYYY')}.xlsx`; // Đặt tên file (có thể động)
+					link.click(); // Kích hoạt tải xuống
+					window.URL.revokeObjectURL(url); // Giải phóng bộ nhớ
+				}
+			}
+		},
 
 	},
 };

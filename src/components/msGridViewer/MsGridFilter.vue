@@ -2,9 +2,14 @@
   <div ref="elmMain" :style="{
       top: setPositionFilter.top + 'px',
       left: setPositionFilter.left + 'px',
-    }" class="condition-container">
-    <div class="lock" :class="`${col.lock ? 'fixing' : ''}`">
-        {{ col.lock ? $t('i18nControl.MsGridViewer.un_pin') : $t('i18nControl.MsGridViewer.fixed_column') }}
+    }" class="condition-container"
+  >
+    <div
+      class="lock" 
+      :class="`${col.lock ? 'fixing' : ''}`" 
+      @click="handleFixColumn"
+    >
+      {{ col.lock ? $t('i18nControl.MsGridViewer.un_pin') : $t('i18nControl.MsGridViewer.fixed_column') }}
     </div>
     <div class="filter-container">
         <div class="view-filter-text">
@@ -59,14 +64,6 @@ export default defineComponent({
      * Hàm xử lý đóng mở form filter
      */
     handleShowFilter: {
-      type: Function,
-      default: ()=> {}
-    },
-
-    /**
-     * Hàm xử lý fix column trên thanh header
-     */
-    handleFixColumn: {
       type: Function,
       default: ()=> {}
     },
@@ -183,10 +180,19 @@ export default defineComponent({
       isShowDropDown.value = !isShowDropDown.value;
     };
 
+    /**
+     * Xử lý cố định cột
+     */
+    const handleFixColumn = () => {
+      const me: any = proxy;
+      me.$emit("handleFixColumn", me.col);
+    };
+
     return{
       selectComparison,
       isShowDropDown,
       comparisonType,
+      handleFixColumn,
       handleSelectComparisonType,
       componentInput,
       valueFilter,

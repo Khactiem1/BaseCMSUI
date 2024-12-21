@@ -3,6 +3,8 @@ import Qs from 'qs';
 import commonFn from '@/commons/commonFunction';
 import moment from 'moment';
 import Utility from '@/commons/utility';
+import { showError } from '@/commons/globalMessage';
+import i18n from '@/i18n/i18n';
 
 // Danh sách đối tượng cần xử lý cancel request
 let cancelRequests: any = [];
@@ -257,17 +259,10 @@ class AxiosHttpClient {
 			commonFn.unmask();
 			//Unauthorized
 			if (error && error.response && error.response.status === 401) {
-
+				await showError(i18n.global.t('i18nCommon.Unauthorized'));
 				commonFn.logout();
 			}
-
-
-
 			throw ex;
-			// // Trả kết quả lỗi
-			// if (error && error.response) {
-			//   return error.response.data;
-			// }
 		}
 	}
 
@@ -502,12 +497,12 @@ class AxiosHttpClient {
 		// Lấy dữ liệu của headers
 		let headers = config.headers || {};
 
-		// if (!headers['Authorization']) {
-		// 	const context = useContextStore();
-		// 	if (context && context.Token) {
-		// 		headers['Authorization'] = context.Token;
-		// 	}
-		// }
+		if (!headers['Authorization']) {
+			const user = commonFn.getUser();
+			if(user?.access_token){
+				headers['Authorization'] = `Bearer ${user.access_token}`;
+			}
+		}
 
 		// Content type
 		headers['Content-Type'] = contenType;
