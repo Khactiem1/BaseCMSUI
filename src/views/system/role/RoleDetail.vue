@@ -54,9 +54,16 @@
                 <div 
                   class="collapse-item-con"
                 >
-                  <div class="ms-collapse-item--header">
-                    <div class="collapse-header-title">
+                  <div class="ms-collapse-item--header flex">
+                    <!-- <div class="collapse-header-title">
                       {{ $t('i18nMenu.sub_system_code.decentralization') }}
+                    </div> -->
+                    <div class="all_permission">
+                      <ms-switch
+                        :labelLeft="$t('i18nRole.AllPermission')"
+                        :checked="isCheckedAll" 
+                        @custom-handle-click-checkbox="handleCheckedAll"
+                      />
                     </div>
                   </div>
                   <div class="ms-collapse-item--content">
@@ -140,7 +147,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, getCurrentInstance, ref } from 'vue';
+import { defineComponent, getCurrentInstance, ref, computed } from 'vue';
 import useModuleRole from '@/stores/system/moduleRole';
 import roleAPI from '@/apis/system/roleAPI'
 import BaseDetail from '@/views/base/BaseDetail'
@@ -158,6 +165,47 @@ export default defineComponent({
 		const storeModule: any = useModuleRole(); // Cấu hình store
 		const api = ref(roleAPI); // Cấu hình api
     const subSystemCode = ref('role'); // Cấu hình phân quyền
+
+    /**
+     * Kiểm tra có đang check toàn bộ quyền hay ko
+     */
+    const isCheckedAll = computed(() => {
+      const me: any = proxy;
+      if(me.model.RoleDetail?.length){
+        for(let i = 0; i < me.model.RoleDetail.length; i++){
+          const role = me.model.RoleDetail[i];
+          if(role.is_parent) continue;
+          if(!role.list_permission.View) return false;
+          if(!role.list_permission.Add) return false;
+          if(!role.list_permission.Edit) return false;
+          if(!role.list_permission.Delete) return false;
+          if(!role.list_permission.ShowColumns) return false;
+        }
+      }
+      return true;
+    });
+
+    /**
+     * Xử lý togle all quyền
+     */
+    const handleCheckedAll = () => {
+      const me: any = proxy;
+      let value = true;
+      if(isCheckedAll.value){
+        value = false;
+      }
+      if(me.model.RoleDetail?.length){
+        me.model.RoleDetail.forEach((role: any) => {
+          if(!role.is_parent){
+            role.list_permission.View = value;
+            role.list_permission.Add = value;
+            role.list_permission.Edit = value;
+            role.list_permission.Delete = value;
+            role.list_permission.ShowColumns = value;
+          }
+        });
+      }
+    };
 
 		/**
 		 * Xử lý dữ liệu trước khi binding
@@ -349,6 +397,8 @@ export default defineComponent({
       column,
 			storeModule,
       subSystemCode,
+      isCheckedAll,
+      handleCheckedAll,
       beforeSave,
 			beforeBindData,
       allPermissionRow,

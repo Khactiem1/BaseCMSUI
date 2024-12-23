@@ -7,6 +7,7 @@ import MsCheckbox from '@/components/checkbox/MsCheckbox.vue';
 import MsRadio from '@/components/radio/MsRadio.vue';
 import MsButton from '@/components/button/MsButton.vue';
 import MsCombobox from '@/components/combobox/MsCombobox.vue';
+import MsSwitch from '@/components/switch/MsSwitch.vue';
 
 export const globalComponents = (app: App<Element>) => {
   app.component('MsDynamicPopup', MsDynamicPopup);
@@ -17,4 +18,5 @@ export const globalComponents = (app: App<Element>) => {
   app.component('MsRadio', MsRadio);
   app.component('MsButton', MsButton);
   app.component('MsCombobox', MsCombobox);
+  app.component('MsSwitch', MsSwitch);
 }

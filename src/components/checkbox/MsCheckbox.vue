@@ -103,12 +103,15 @@ export default defineComponent({
       },
     });
 
-    function lockEvent(event: any){
+    const lockEvent = (event: any) => {
       if(lockCheckBox.value){
         event.preventDefault(); 
       }
     }
-    return { computedValue, lockEvent };
+    return { 
+      computedValue, 
+      lockEvent,
+    };
   },
 });
 </script>

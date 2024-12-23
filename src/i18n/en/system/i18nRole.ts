@@ -2,6 +2,7 @@ export default {
   Title: "Role",
   Power: "Power",
   SelectRole: "Select role",
+  AllPermission: "Has full authority on the permission tree",
   List: {
     Title: "System role",
   },

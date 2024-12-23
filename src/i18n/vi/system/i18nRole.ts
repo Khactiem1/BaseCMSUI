@@ -2,6 +2,7 @@ export default {
   Title: "Vai trò",
   Power: "Quyền hạn",
   SelectRole: "Chọn vai trò",
+  AllPermission: "Có toàn quyền trên cây phân quyền",
   List: {
     Title: "Hệ thống vai trò",
   },
