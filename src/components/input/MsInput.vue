@@ -1,229 +1,263 @@
 <template>
-  <div class="data-input ms-input" :class="{ 'is-valid': isValid || isValidEmailPhone }">
-    <label :class="{ required: required }">{{ label }}</label>
-    <span v-if="toolTip" class="tool-tip">
-      {{ toolTip }}
-    </span>
-    <input
-      :disabled="disabled"
-      ref="tagInput"
-      class="input"
-      :type="type"
-      v-model="valueHeader"
-      :placeholder="placeholder"
-      :tabindex="tab"
-      @input="handleInput"
-      @blur="handleCheckEmailPhone"
-      :class="{'is-number' : isNumber}"
-    />
-    <span class="message-valid" :style="{left : leftMessage}">{{ messageValid }}</span>
+  <div class="data-input ms-input ms-editor ms-validate">
+    <div class="flex">
+      <label class="label" v-if="label">{{ label }}</label>
+      <div class="ms-textarea-required" v-if="rules && rules.find((_ : any) => _?.name == 'required')">&nbsp;{{textRequired}}</div>
+	    <slot name="labelCustom"></slot>
+    </div>
+    <div class="flex-row">
+      <input
+        :title="internalText"
+        class="ms-input-item input flex w-100"
+        :placeholder="placeholder"
+        v-model="internalText"
+        :disabled="disabled"
+        :readOnly="readOnly"
+        :maxlength="maxLength"
+        :autofocus = "autofocus"
+        ref="input"
+        :class="{ disabled: disabled , 'toUpper': toUpperCase, 'input-error': errorMessage}"
+        v-on="listeners"
+        :type="type"
+        :autocomplete="autocomplete"
+      />
+      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, onMounted, toRefs, watch, onBeforeMount, defineComponent, getCurrentInstance } from "vue";
+import { defineComponent, ref, onMounted, computed, watch, getCurrentInstance } from 'vue';
+import msBaseComponent from '@/components/base/MsBaseComponent.vue';
+import { useValidateControl } from '@/setup/validateControl';
 
 export default defineComponent({
-  props: [
-    "modelValue", // Giá trị v-model
-    "maxLength", // Max độ dài
-    "placeholder", // placeholder ô input
-    "required", // Bắt buộc hay không
-    "type", // Kiểu input
-    "messageValid", // Thông báo lỗi khi input không thoả mãm
-    "label", // Label hiển thị
-    "focus", // có được focus hay không
-    "tab", // tab index
-    "toolTip", // toolTip hiển thị
-    "isPhone", // Có là sdt không
-    "isEmail", // Có là email không
-    "leftMessage", // hiển thị message bên left
-    "maxValue", // max giá trị có thể nhập khi là số
-    "disabled", // vô hiệu hoá ô input
+  extends: msBaseComponent,
+  name: 'msInput',
+  props: {
+    /**
+     * V-model bắn ra ngoài binding 2 chiều
+     */
+    modelValue: {
+      default: null,
+    },
+    /**
+     * Hiện thị chũ mờ ở dưới ô input
+     * Created by LTDAT(22.06.2020)
+     */
+    placeholder: {
+      default: null,
+      type: [String],
+    },
+    //Giới hạn nhập của ô input
+    maxLength: {
+      default: null,
+      type: Number,
+    },
+    //disabled
+    disabled: {
+      default: false,
+      type: Boolean,
+    },
+    /**
+     * Kí hiệu cảnh báo trường bắt buộc nhập không được bỏ trống
+     * created by: hvanh 9-5-2023
+     */
+    textRequired: {
+      type: String,
+      default: '*',
+      required: false,
+    },
+    /**
+     * Auto focus khi có sự kiện mở form v.v
+     * hvanh - 10.5.2023
+     */
+    autofocus: {
+      default: false,
+      type: [Boolean]
+    },
+    /**
+     * Xem dữ liệu có cần viết hoa hay không
+     * hvanh - 10.5.2023
+     */
+    toUpperCase: {
+      type: Boolean,
+			default: false
+    },
+
+	  /**
+     * type
+     */
+    type: {
+      type: String,
+		  default: 'text'
+    },
+    autocomplete: {
+      type: String,
+      default: 'on'
+    }
+  },
+  emits: [
+    'msKeydown',
+    'update:modelValue',
+    'focus',
+    'blur',
+    'input',
+    'msKeyup',
+    'clickRightIcon',
+    'paste',
   ],
-  emits: ["update:modelValue"],
-  setup(props, context) {
-    const { proxy } : any = getCurrentInstance();
-    /**
-     * Element thẻ input
-     * Khắc Tiềm - 15.09.2022
-     */
-    const tagInput:any = ref(null);
+  setup(props, { emit }) {
+    //Variable
+    let internalText = ref('');
+    let focused = false;
+    let displayValue = null;
+    let input = ref(null);
+    const { errorMessage, validate, isValidate, clearValidate } = useValidateControl({props});
 
-    /**
-     * focus: có focus khi mounted
-     * required: có bắt buộc hay k
-     * isEmail: Là email hay k
-     * isPhone: là sdt hay k
-     * maxLength: độ dài max là value
-     * modelValue: v-model
-     * isNumber: là số hay k
-     * Khắc Tiềm - 15.09.2022
-     */
-    const { focus, required, isEmail, isPhone, maxLength, modelValue, maxValue }:any = toRefs(props);
-    const isNumber = ref(false);
+    const { proxy }: any = getCurrentInstance();
 
-    /**
-     * Trạng thái hiển thị validate
-     * Khắc Tiềm - 15.09.2022
-     */
-    const isValid:any = ref(false);
+    //Sự kiện focus vào ô input
+    const onFocus = (e) => {
+      focused = true;
+      emit('focus', internalText.value, e);
+    };
 
-    /**
-     * trạng thái hiển thị validate email, phone
-     * Khắc Tiềm - 15.09.2022
-     */
-    const isValidEmailPhone:any = ref(false);
+    //Sự kiên blur ra ngoài ô input
+    const onBlur = (e) => {
+      focused = false;
+      validate();
+      emit('blur', internalText.value, e);
+    };
 
-    /**
-     * Kiểm tra sự thay đổi của giá trị input và binding lên thẻ input
-     */
-    const valueHeader:any = ref('');
-    watch(modelValue, (newValue)=>{
-      if(isNumber.value){
-        valueHeader.value = proxy.$ms.format.formatNumber(newValue);
+    //Reset lại giá trị về ban đầu
+    const reset = () => {
+      internalText.value = '';
+      displayValue = null;
+    };
+    //Set giá trị cho ô input
+    const setValue = (value) => {
+      if (proxy.rules) {
+        const rule = proxy.rules.find(
+          (x) => x.name === 'pattern' && x.compareValue === 'phone'
+        );
+        if (rule && value) {
+          value = value.replace(/ /g, '').replace(/\./g, '');
+        }
       }
-      else{
-        valueHeader.value = newValue;
-      }
-    });
-    /**
-     * Binding giá trị lên thẻ input
-     */
-    onBeforeMount(()=>{
-      if(isNumber.value){
-        valueHeader.value = proxy.$ms.format.formatNumber(modelValue.value);
-      }
-      else{
-        valueHeader.value = modelValue.value;
-      }
-    });
+      internalText.value = value;
+    };
+
+    //Lấy giá trị ô input
+    const getValue = () => {
+      return internalText.value;
+    };
 
     /**
-     * Sau khi được mounted vào dom thì nếu đc chỉ định focus ô input sẽ đc focus
-     * Khắc Tiềm - 15.09.2022
+     * Thiết lập mesage khi dữ liệu rỗng
+     * Created by: nvtoan1 28.6.2023
      */
+    const setError = (message) => {
+      setTimeout(() => {
+        proxy.errorMessage = message;
+      });
+    };
+
+    /**
+     * Hủy lan rộng event
+     * HTHIEP 09.02.2022
+     */
+    const cancelEvent = (e) => {
+      if (e) {
+        if (typeof e.preventDefault === 'function') {
+          e.preventDefault();
+        }
+
+        if (typeof e.stopPropagation === 'function') {
+          e.stopPropagation();
+        }
+
+        if (typeof e.stopImmediatePropagation === 'function') {
+          e.stopImmediatePropagation();
+        }
+      }
+    };
+
+    //Hooks
+    //set internalText
     onMounted(() => {
-      if (focus.value === true) {
-        setTimeout(() => {
-          if(tagInput.value){
-            tagInput.value.focus();
-          }
-        }, 150);
-      }
+      internalText.value = props.modelValue;
     });
 
     /**
-     * hàm xử lý nhập input và validate
-     * Khắc Tiềm - 15.09.2022
+     * Lắng nghe event => thò ra ngoài
+     * HTHIEP 11.02.2022: Làm mịn, migration sang vue 3
      */
-    function handleInput(event:any) {
-      if (maxLength.value && !isNumber.value) {
-        if (event.target.value.length <= maxLength.value) {
-          updateValue(event.target.value);
-          isValidEmailPhone.value = false;
-          if (required.value) {
-            if (event.target.value.trim() == "") {
-              isValid.value = true;
-            } else {
-              isValid.value = false;
-            }
-          }
-        }
-        else{
-          valueHeader.value = modelValue.value;
-        }
-      }
-      else if(isNumber.value){
-        const number = CommaToNumber(event.target.value);
-        if(checkNumber(number) || number === '' || number === null || number === undefined){
-          if((event.data === '.' || event.data === ',')){
-            valueHeader.value = proxy.$ms.format.formatNumber(modelValue.value) + ',';
-          }
-          else{
-            valueHeader.value = proxy.$ms.format.formatNumber(modelValue.value);
-            updateValue(number);
-          }
-        }
-        else{
-          valueHeader.value = proxy.$ms.format.formatNumber(modelValue.value);
-        }
-      }
-      else {
-        updateValue(event.target.value);
-        isValidEmailPhone.value = false;
-        if (required.value) {
-          if (event.target.value == "") {
-            isValid.value = true;
-          } else {
-            isValid.value = false;
-          }
-        }
-      }
-    }
+    const listeners = computed(() => {
+      return {
+        blur: (e) => {
+          cancelEvent(e);
+          onBlur(e);
+        },
+        focus: (e) => {
+          cancelEvent(e);
+          onFocus(e);
+        },
+        input: (e) => {
+          cancelEvent(e);
+          e.internalText = internalText.value; // DHHoang bổ sung fixbug: 59398
+          emit('input', e, internalText.value);
+        },
+        keydown: (e) => {
+          // e.stopPropagation();
+          emit('msKeydown', e, internalText.value);
+        },
+        keyup: (e) => {
+          emit('msKeyup', e, internalText.value);
+        },
+        paste: (e) => {
+          emit('paste', e, internalText.value);
+        },
+      };
+    });
 
     /**
-     * Hàm cập nhật giá trị
-     * Khắc Tiềm - 15.09.2022
+     * Lắng nghe xử lý update lại modelValue
+     * HTHIEP 11.02.2022: Làm mịn, sửa lại từ vue 2 sang vue 3
      */
-    function updateValue(value:any){
-      if(maxValue.value){
-        if(Number(value) <= maxValue.value){
-          context.emit("update:modelValue", value);
-        }
-        else{
-          valueHeader.value = proxy.$ms.format.formatNumber(modelValue.value);
+    watch(
+      () => internalText.value,
+      (value) => {
+        if (value !== props.modelValue) {
+          emit('update:modelValue', value);
         }
       }
-      else{
-        context.emit("update:modelValue", value);
-      }
-    }
-
-    function CommaToNumber(number:any){
-      const ToNumber = number.replace(/\./g,'').replace(/,/g, '.');
-      return ToNumber ? ToNumber : undefined;
-    }
-    /**
-     * hàm xử lý validate điện thoại và email
-     * Khắc Tiềm - 15.09.2022
-     */
-    function handleCheckEmailPhone(event:any) {
-      if (event.target.value != "") {
-        if (isEmail.value) {
-          if (proxy.$ms.format.validateEmail(event.target.value) === false) {
-            isValidEmailPhone.value = true;
-          } else {
-            isValidEmailPhone.value = false;
-          }
-        }
-      }
-    }
+    );
 
     /**
-     * Hàm xử lý chỉ cho nhập số
-     * Khắc Tiềm - 15.09.2022
+     * Lắng nghe thay đổi modelValue set lại text cho input
+     * HTHIEP 11.02.2022: Làm mịn, sửa lại từ vue 2 sang vue 3
      */
-    // function isInputNumber(evt) {
-    //   if(isNumber.value){
-    //     evt = (evt) ? evt : window.event;
-    //     var charCode = (evt.which) ? evt.which : evt.keyCode;
-    //     if ((charCode > 31 && (charCode < 48 || charCode > 57)) && charCode !== 46) {
-    //       evt.preventDefault();
-    //     } else {
-    //       return true;
-    //     }
-    //   }
-    // }
-    function checkNumber(n:any) { return !isNaN(parseFloat(n)) && !isNaN(n - 0) }
+    watch(
+      () => props.modelValue,
+      (value) => {
+        setValue(value);
+      }
+    );
     return {
-      tagInput,
-      isValid,
-      valueHeader,
-      isValidEmailPhone,
-      handleCheckEmailPhone,
-      handleInput,
-      isNumber,
+      internalText,
+      focused,
+	    onFocus,
+      listeners,
+      reset,
+      displayValue,
+      input,
+      getValue,
+      errorMessage,
+      validate,
+      isValidate,
+      clearValidate,
+      setError,
     };
   },
 });

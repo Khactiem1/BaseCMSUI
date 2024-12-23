@@ -11,6 +11,7 @@
             <div class="form-group">
               <ms-input
                 :maxLength="30"
+                :rules="[{ name: 'required' }, ]"
                 :label="$t('i18nRole.Detail.role_code')" 
                 v-model="model.role_code"
               ></ms-input>
@@ -18,6 +19,7 @@
             <div class="form-group">
               <ms-input
                 :maxLength="80"
+                :rules="[{ name: 'required' }, ]"
                 :label="$t('i18nRole.Detail.role_name')" 
                 v-model="model.role_name"
               ></ms-input>
@@ -400,10 +402,10 @@ export default defineComponent({
 }
 .form-group{
   margin-right: 12px;
-  width: 250px;
+  width: 300px;
   padding-bottom: 4px;
   &:first-child{
-    width: 150px;
+    width: 200px;
   }
   &:last-child{
     width: 500px;
@@ -444,8 +446,7 @@ export default defineComponent({
     padding: 16px;
     background-color: #fff;
     border-radius: 2px;
-    height: calc(100vh - 190px);
-    // width: calc(100% - 250px);
+    height: calc(100vh - 232px);
     .row-header{
       align-items: center;
       margin-bottom: 12px;

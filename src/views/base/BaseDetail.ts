@@ -49,6 +49,7 @@ export default {
 	mounted() {
     const me: any = this;
     me.bindData();
+    me.addObserveControl();
 	},
 	/**
 	 * Xóa items trong grid khi unmount
@@ -187,6 +188,29 @@ export default {
 		},
 
     /**
+		 * Khởi tạo observe control
+		 * .ms-validate được thêm vào root khi khai báo rules
+		 */
+		addObserveControl() {
+      const me: any = this;
+			if (!me._observeControls) {
+				me._observeControls = [];
+				const $el = me.$el;
+				let $controls = null;
+				if($el && typeof $el.querySelectorAll == 'function'){
+					$controls = $el.querySelectorAll('.ms-validate');
+				}
+				if ($controls && $controls.length > 0) {
+					$controls.forEach((item) => {
+						if (typeof item.getVueInstance === 'function') {
+							me._observeControls.push(item.getVueInstance());
+						}
+					});
+				}
+			}
+		},
+
+    /**
 		 * Hàm validate các control input
 		 * Hàm này sử dụng component ms-validate
 		 * để bao ngoài vùng được validate
@@ -194,8 +218,37 @@ export default {
 		 */
 		async validateComponents() {
       const me: any = this;
-      return true;
+      let controls = me._observeControls.filter((x) => x.$el.offsetWidth || x.$el.offsetHeight || x.$el.getClientRects().length);
+			if (controls.length > 0) {
+				const errors = controls.map((x) => {
+					if (typeof x.validate === 'function') {
+						return x.validate();
+					}
+					return '';
+				});
+				let indexFirst = errors.findIndex((item) => item);
+				if (indexFirst !== -1) {
+					showError(errors[indexFirst]).then(() => me.focusFirstError()); // show popup cảnh báo, không cần truyền title
+				}
+				return !errors.some((x) => x);
+			}
+			return true;
     },
+
+    /**
+		 * Hàm dùng để focus vào ô lỗi đầu tiên
+		 * */
+    focusFirstError() {
+			const me: any = this;
+			const $el = me.$el;
+			let firstErrorEl = null;
+			if($el && typeof $el.querySelector == 'function'){
+				firstErrorEl = $el.querySelector('.ms-editor .input-error');
+			}
+			if (typeof firstErrorEl?.focus === 'function') {
+				firstErrorEl.focus();
+			}
+		},
 
     /**
 		 * Hàm validate custom trước khi save

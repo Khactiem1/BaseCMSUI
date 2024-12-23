@@ -38,6 +38,7 @@ export default {
   enter_filter: "Enter filter",
   AskDeleteRecord: "Do you really want to remove?",
   AskResetPassword: "Are you sure you want to reset your password? It will be returned to default?",
+  DuplicateDataDel: "The record code already exists in the system.",
   crud: {
     delete_success: "Delete success.",
     save: "Save",

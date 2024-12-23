@@ -1,7 +1,7 @@
 <template>
 	<ms-dynamic-popup 
-		:width="880" 
-		:height="500" 
+		:width="1000" 
+		:height="600" 
 		:title="`${editMode ? $ms.commonFn.getEnumResource(editMode ,'FormState') : ''} ${$t('i18nUser.Title')}`" 
 		@beforeOpen="beforeOpen"
 	>
@@ -14,7 +14,8 @@
 								<div class="form-group ms-small">
 									<ms-input
 										:maxLength="30"
-										:label="$t('i18nUser.Detail.user_name')" 
+										:label="$t('i18nUser.Detail.user_name')"
+										:rules="[{ name: 'required' }, ]"
 										v-model="model.user_name"
 									></ms-input>
 								</div>
@@ -22,6 +23,7 @@
 									<ms-input
 										:maxLength="150"
 										:label="$t('i18nUser.Detail.user_full_name')" 
+										:rules="[{ name: 'required' }, ]"
 										v-model="model.user_full_name"
 									></ms-input>
 								</div>
@@ -29,7 +31,8 @@
 							<div class="form-group">
 								<ms-input
 									:maxLength="13"
-									:label="$t('i18nUser.Detail.phone_number')" 
+									:label="$t('i18nUser.Detail.phone_number')"
+									:rules="[{ name: 'pattern', compareValue: 'phone' }, ]"
 									v-model="model.phone_number"
 								></ms-input>
 							</div>
@@ -39,7 +42,8 @@
 								<div class="form-group ms-small">
 									<ms-datepicker
 										:label="$t('i18nUser.Detail.date_of_birth')"
-										:maxDate="new Date()"
+										:max="new Date()"
+										:rules="[{ name: 'required' }, ]"
 										v-model="model.date_of_birth"
 									>
 									</ms-datepicker>
@@ -69,7 +73,8 @@
 								<div class="form-group ms-big">
 									<ms-input
                     :maxLength="50"
-                    :label="$t('i18nUser.Detail.email')" 
+                    :label="$t('i18nUser.Detail.email')"
+										:rules="[{ name: 'pattern', compareValue: 'email' }, ]"
                     v-model="model.email"
                   ></ms-input>
 								</div>

@@ -6,6 +6,7 @@ import i18nCommon from "@/i18n/vi/i18nCommon";
 import i18nControl from "@/i18n/vi/i18nControl";
 import i18nEnum from "@/i18n/vi/i18nEnum";
 import i18nMenu from "@/i18n/vi/system/i18nMenu";
+import i18nValidate from "@/i18n/vi/i18nValidate";
 
 // en
 import i18nEnEmployee from "@/i18n/en/dictionary/i18nEmployee";
@@ -15,6 +16,7 @@ import i18nEnCommon from "@/i18n/en/i18nCommon";
 import i18nENControl from "@/i18n/en/i18nControl";
 import i18nEnEnum from "@/i18n/en/i18nEnum";
 import i18nEnMenu from "@/i18n/en/system/i18nMenu";
+import i18nEnValidate from "@/i18n/en/i18nValidate";
 
 export default {
   vi: {
@@ -25,6 +27,7 @@ export default {
     i18nUser,
     i18nRole,
     i18nMenu,
+    i18nValidate,
   },
   en: {
     i18nEmployee: i18nEnEmployee,
@@ -34,5 +37,6 @@ export default {
     i18nUser: i18nEnUser,
     i18nRole: i18nEnRole,
     i18nMenu: i18nEnMenu,
+    i18nValidate: i18nEnValidate,
   }
 }

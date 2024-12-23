@@ -257,6 +257,18 @@
   padding-left: 10px;
   padding-right: 2.75rem;
 }
+.error-message {
+  color: #ff0000;
+  font-size: 12px;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+.input-error {
+  border: 1px solid #ff0000; /* Viền đỏ nếu input không hợp lệ */
+}
+.ms-textarea-required{
+  color: #ff0000;
+}
 /* Phần phân trang */
 .form-fix{
 	min-width: 316px;

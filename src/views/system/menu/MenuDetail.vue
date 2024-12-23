@@ -1,7 +1,7 @@
 <template>
 	<ms-dynamic-popup 
-		:width="600" 
-		:height="420" 
+		:width="800" 
+		:height="520" 
 		:title="`${editMode ? $ms.commonFn.getEnumResource(editMode ,'FormState') : ''} ${$t('i18nMenu.Title')}`" 
 		@beforeOpen="beforeOpen"
 	>
@@ -14,6 +14,7 @@
 								<div class="form-group ms-small">
 									<ms-input
 										:maxLength="30"
+                    :rules="[{ name: 'required' }, ]"
 										:label="$t('i18nMenu.Detail.menu_code')" 
 										v-model="model.menu_code"
 									></ms-input>
@@ -21,6 +22,7 @@
 								<div class="form-group ms-big">
 									<ms-input
 										:maxLength="150"
+                    :rules="[{ name: 'required' }, ]"
 										:label="$t('i18nMenu.Detail.menu_name')" 
 										v-model="model.menu_name"
 									></ms-input>

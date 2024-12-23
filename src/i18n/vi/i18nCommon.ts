@@ -38,6 +38,7 @@ export default {
   enter_filter: "Nhập giá trị lọc",
   AskDeleteRecord: "Bạn có thực sự muốn xoá?",
   AskResetPassword: "Bạn có chắc muốn đặt lại mật khẩu không, mật khẩu sẽ bị chuyển về mặc định?",
+  DuplicateDataDel: "Mã bản ghi đã tồn tại trong hệ thống.",
   crud: {
     delete_success: "Bản ghi đã bị xoá.",
     save: "Lưu",

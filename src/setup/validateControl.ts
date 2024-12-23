@@ -1,8 +1,8 @@
 import { validateText } from '@/mixins/component/validateText';
-// import { validateNumber } from '@/mixins/component/validateNumber';
+import { validateNumber } from '@/mixins/component/validateNumber';
 import { ref, getCurrentInstance, computed } from 'vue';
-// import { validateCombobox } from '@/mixins/component/validateCombobox';
-// import i18nValidate from '@/i18ns/vi/i18nValidate';
+import { validateCombobox } from '@/mixins/component/validateCombobox';
+import {isNaN } from 'lodash-es';
 
 export const ValidateRules = {
 	required: 'required',
@@ -17,8 +17,8 @@ export const ValidateRules = {
 export const useValidateControl = ({ props }) => {
 	const errorMessage = ref('');
 	const isValidate = computed(() => props.rules.length > 0);
-	const { proxy } = getCurrentInstance();
-	const validate = (isValidateFromGrid) => {
+	const { proxy }: any = getCurrentInstance();
+	const validate = (isValidateFromGrid = null) => {
 		//Nếu là editor của grid thì sẽ lấy config từ column
 		let rules = [];
 		if (proxy._isGridEditor) {
@@ -74,7 +74,7 @@ export const useValidateControl = ({ props }) => {
 					if (messageCustom) {
 						message = messageCustom;
 					} else {
-						// message = i18nValidate.messages[rule](titleError, proxy._isGridEditor);
+						message = proxy.$t(`i18nValidate.messages.${rule}`, { field: titleError });
 					}
 				}
 				break;
@@ -89,35 +89,10 @@ export const useValidateControl = ({ props }) => {
 					if (messageCustom) {
 						message = messageCustom;
 					} else {
-						// message = i18nValidate.messages['email'](titleError);
+						message = proxy.$t(`i18nValidate.messages.email`, { field: titleError });
 					}
 				}
 				break;
-			case 'diffierentZero':
-				// if (!validateNumber.validatediffierentZero(controlValue)) {
-				// 	if (messageCustom) {
-				// 		message = messageCustom;
-				// 	} else {
-				// 		// message = i18nValidate.messages['diffierentZero'](titleError);
-				// 	}
-				// }
-				break;
-			case 'notSelectParent':
-				if (props.propsData?.data && props.col?.dataField && props.propsData.data[props.col.dataField]) {
-					let currentItem = props.propsData.data[props.col.dataField].find((item) => item[props.col.dataField] == controlValue);
-					if (currentItem && currentItem.hasOwnProperty('IsParent') && currentItem['IsParent']) {
-						if (messageCustom) {
-							message = messageCustom;
-						} else {
-							// message = i18nValidate.messages['notSelectParent']();
-						}
-					}
-				}
-				break;
-			case 'max_refno':
-				if (props.modelValue && props.modelValue.length > props.maxLength) {
-					// message = i18nValidate.messages['max_refno'](props.label, props.maxLength);
-				}
 			default:
 				break;
 		}
@@ -145,7 +120,7 @@ export const useValidateControl = ({ props }) => {
 				if (rule) {
 					//nktiem Bổ sung thêm cái messageCustom để cho các control có thể tự custom message của mình theo từng rule theo nghiệp vụ
 					const { name, compareValue, customValidate, messageCustom } = rule;
-					// message = validateCombobox.validateRule(name, proxy, messageCustom, param);
+					message = validateCombobox.validateRule(name, proxy, messageCustom, param);
 					if (message) {
 						break;
 					}
