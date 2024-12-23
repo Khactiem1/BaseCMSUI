@@ -32,5 +32,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-
+.btn:disabled {
+  cursor: not-allowed; /* Thay đổi con trỏ để chỉ rõ trạng thái không bấm được */
+  opacity: 0.6; /* Làm mờ nút */
+}
 </style>

@@ -2,7 +2,7 @@
   <div class="preview-modal" v-if="file">
     <div class="modal-overlay" @click="onCancel"></div>
     <div class="modal-content">
-      <div class="crop-container">
+      <div class="crop-container" :style="style">
         <cropper
           ref="cropper"
           class="cropper"
@@ -11,6 +11,7 @@
             aspectRatio: aspectRatio,
           }"
           :auto-zoom="autoZoom"
+          @ready="onCropperReady"
         />
           <!-- :stencil-size="{
             width: maxWidth,
@@ -46,6 +47,34 @@ export default defineComponent({
     const { file }: any = toRefs(props);
     const cropper = ref(null);
     const fileUrl = ref('');
+
+    /**
+     * Max ảnh có thể hiển thị
+     */
+    const style = {
+      maxWidth: `${window.innerWidth - 40}px`,
+      maxHeight: `${window.innerHeight - 100}px`,
+    };
+
+    /**
+     * Xử lý crop full ảnh
+     */
+    const onCropperReady = () => {
+      const me: any = proxy;
+      const cropper = me.$refs.cropper;
+      if (cropper) {
+        const { image } = cropper.getResult();
+        // Đặt vùng crop bằng toàn bộ kích thước ảnh
+        if(image){
+          cropper.setCoordinates({
+            x: 0,
+            y: 0,
+            width: image.width,
+            height: image.height,
+          });
+        }
+      }
+    };
 
     // Tạo URL từ file
     watch(
@@ -100,10 +129,12 @@ export default defineComponent({
     };
 
     return {
+      style,
       fileUrl,
       cropper,
       onCancel,
       onConfirm,
+      onCropperReady,
     }
   }
 });

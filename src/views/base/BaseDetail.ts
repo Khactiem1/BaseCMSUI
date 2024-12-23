@@ -62,7 +62,7 @@ export default {
      * Xử lý trước khi bind dữ liệu
      */
     async beforeBindData(){
-      console.log("DEV: Gọi vào base hàm beforeBindData");
+      
     },
 
     /**

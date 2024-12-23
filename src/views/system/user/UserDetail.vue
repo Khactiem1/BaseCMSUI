@@ -235,6 +235,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 .role-item{
 	margin-bottom: 8px;
+	padding-left: 12px;
 }
 .form-select-option{
 	max-height: 212px;
