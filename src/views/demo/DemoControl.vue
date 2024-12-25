@@ -13,6 +13,9 @@
 			<ms-input v-model="msInput"/> Value: {{ msInput }}
 		</div>
 		<div style="width: 200px; display: flex; margin-bottom: 6px;">
+			<ms-textarea v-model="msInput"/> Value: {{ msInput }}
+		</div>
+		<div style="width: 200px; display: flex; margin-bottom: 6px;">
 			<ms-number v-model="msNumber"/> Value: {{ msNumber }}
 		</div>
 		<div style="width: 200px; display: flex; margin-bottom: 6px;">

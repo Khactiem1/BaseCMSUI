@@ -593,6 +593,9 @@ export default defineComponent({
           setPositionListSelect();
           toggleListSelect();
         }
+        if(input.value.value === ''){
+          context.emit("update:modelValue", null);
+        }
       } catch (e) {
         console.log(e);
       }

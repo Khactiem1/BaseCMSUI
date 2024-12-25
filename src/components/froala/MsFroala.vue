@@ -181,7 +181,7 @@ export default defineComponent({
      */
     const computedValue = computed({
       get() {
-        props.modelValue;
+        return props.modelValue;
       },
       set(value) {
         emit("update:modelValue", value);
