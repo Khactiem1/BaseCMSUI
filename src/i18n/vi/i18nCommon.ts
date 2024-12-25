@@ -8,6 +8,7 @@ export default {
   Logout: "Đăng xuất",
   Login: "Đăng nhập",
   SettingDisplay: "Thiết lập hiển thị",
+  EnterDocument: "Nhập văn bản",
   notFoundPage: "Không tìm thấy trang",
   notPermission: "Bạn không có quyền thực hiện chức năng này",
   Dashboard: "Tổng quan",

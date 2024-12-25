@@ -4,7 +4,10 @@
 			Trang chủ nhân viên {{ $ms.constant.Gender.Other }}
 		</div>
 		<div style="width: 1000px; display: flex; margin-bottom: 6px;">
-			<ms-datepicker v-model="datePicker"/> Value: {{ datePicker }}
+			<ms-datepicker
+				v-model="datePicker"
+			>
+			</ms-datepicker>
 		</div>
 		<div style="width: 200px; display: flex; margin-bottom: 6px;">
 			<ms-input v-model="msInput"/> Value: {{ msInput }}
@@ -14,6 +17,9 @@
 		</div>
 		<div style="width: 200px; display: flex; margin-bottom: 6px;">
 			<ms-checkbox v-model="msCheckbox"/> Value: {{ msCheckbox }}
+		</div>
+		<div style="width: 200px; display: flex; margin-bottom: 6px;">
+			<ms-switch v-model="msCheckbox"/> Value: {{ msCheckbox }}
 		</div>
 		<div style="width: 1000px; display: flex; margin-bottom: 6px;">
 			<label>{{ "Giới tính: " }}</label>
@@ -45,6 +51,16 @@
 			<ms-button @click="showErrorFn">showError</ms-button>
 			<ms-button @click="showWarningFn">showWarning</ms-button>
 		</div>
+		<div style="height: 400px;">
+			<ms-froala
+				v-model="model"
+				:pathImage="'/news/handbook/image'"
+				:pathVideo="'/news/handbook/video'"
+			/>
+		</div>
+		<div style="height: 400px;">
+			<ms-froala-view v-model="model"></ms-froala-view>
+		</div>
   </div>
 </template>
 
@@ -53,20 +69,24 @@ import { defineComponent, getCurrentInstance, ref } from 'vue';
 import popupUtil from '@/commons/popupUtil';
 import useModuleEmployee from '@/stores/dictionary/moduleEmployee';
 import employeeAPI from '@/apis/dictionary/employeeAPI';
+import MsFroala from '@/components/froala/MsFroala.vue';
 import { showInfo, showAlert, showConfirm, showError, showWarning } from '@/commons/globalMessage';
+import MsFroalaView from '@/components/froala/MsFroalaView.vue';
 
 export default defineComponent({
   components: {
-
+		MsFroala,
+		MsFroalaView,
   },
 	setup() {
 		const { proxy } : any = getCurrentInstance();
 
-		const datePicker = ref(proxy.$ms.format.formatDateTimeFull(new Date()));
+		const datePicker = ref(new Date());
 		const msInput  = ref();
 		const msNumber  = ref();
 		const msCheckbox  = ref(true);
 		const gender  = ref(0);
+		const model = ref(null);
 
 		const storeModule: any = useModuleEmployee();
 
@@ -128,6 +148,7 @@ export default defineComponent({
 			msNumber,
 			msCheckbox,
 			gender,
+			model,
 			showInfoFn,
 			showAlertFn,
 			showConfirmFn,

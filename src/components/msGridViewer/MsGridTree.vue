@@ -310,7 +310,7 @@ export default defineComponent({
   setup(props) {
     const { proxy }: any = getCurrentInstance();
     const colFilter = ref({}); // Dữ liệu cột đang thực hiện show filter
-    const { resizeOn, resizeOff } = useColumnResize();
+    const { resizeOn, resizeOff, handleShowFilter } = useColumnResize();
     const lineClamp = ref<any>('') // Số dòng hiển thị dữ liệu trên 1 row;
     const { data } = toRefs(props); // Dữ liệu binding
     const datax = ref<any []>([]);
@@ -602,31 +602,6 @@ export default defineComponent({
       isShowFilter.value = false;
       initColumns(columnx.value);
     };
-    
-    /**
-     * 
-     * Hàm đóng mở form tìm kiếm
-     */
-    const handleShowFilter = async (event: any = null, col: any = null, isRelaodFilter = false) => {
-      const me: any = proxy;
-      try {
-        if(event){
-          const rect = event.srcElement.getBoundingClientRect()
-          setPositionFilter.value.top = rect.top + 25;
-          setPositionFilter.value.left = rect.left - (346 - rect.width);
-        }
-        if(!isShowFilter.value && col){
-          colFilter.value = col;
-        }
-        isShowFilter.value = !isShowFilter.value;
-        if(isRelaodFilter){
-          me.gridInfo.pageIndex = 1;
-          me.loadData();
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    }
 
     /**
      * Hàm xử lý sắp xếp

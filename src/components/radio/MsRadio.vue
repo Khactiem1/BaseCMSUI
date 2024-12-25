@@ -1,10 +1,11 @@
 <template>
-  <label class="input-radio_check" :class="{ active: isChecked }">
+  <label class="input-radio_check ms-radio" :class="{ active: isChecked, 'disabled' : disabled }">
     <input
       type="radio"
       :checked="isChecked"
       :value="value"
       :tabindex:="tab"
+      :disabled="disabled"
       @change="$emit('update:modelValue', ($event.target as HTMLInputElement)?.value); 
       $emit('update:textField', label);"
     />
@@ -18,6 +19,13 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   props: {
+    /**
+     * Thuộc tính disable control
+     */
+     disabled: {
+      type: Boolean,
+      default: false,
+    },
     /**
      * Label hiển thị
      */
@@ -45,7 +53,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-/* Input radio */
+.ms-radio{
+  &.disabled{
+    opacity: 0.6;
+  }
+}
 .input-radio_check {
   align-items: center;
   cursor: pointer;

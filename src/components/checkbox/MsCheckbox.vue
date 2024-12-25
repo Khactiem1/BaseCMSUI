@@ -1,5 +1,5 @@
 <template>
-  <label @click="lockEvent" class="check ms-checkbox">
+  <label @click="lockEvent" class="check ms-checkbox" :class="{ 'disabled' : disabled }">
     <input
       class="checkbox"
       type="checkbox"
@@ -117,7 +117,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-/* checkbox */
+.ms-checkbox{
+  &.disabled{
+    opacity: 0.6;
+  }
+}
 .check {
   position: relative;
   display: flex;

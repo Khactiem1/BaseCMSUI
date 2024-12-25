@@ -8,6 +8,7 @@ export default {
   Logout: "Logout",
   Login: "Login",
   SettingDisplay: "Setting display",
+  EnterDocument: "Enter document",
   notFoundPage: "404 Notfound",
   notPermission: "Not permission",
   Dashboard: "Dashboard",

@@ -4,6 +4,37 @@ export const useColumnResize = () => {
   const { proxy }: any = getCurrentInstance();
 
   /**
+   * 
+   * Hàm đóng mở form tìm kiếm
+   */
+  const handleShowFilter = async (event: any = null, col: any = null, isRelaodFilter = false) => {
+    const me: any = proxy;
+    try {
+      if(event){
+        const widthFilter = 350 + 80; // width của component filter + 80 là width của left menu
+        const rect = event.srcElement.getBoundingClientRect()
+        me.setPositionFilter.top = rect.top + 25;
+        if(rect.left < widthFilter){
+          me.setPositionFilter.left = widthFilter - (346 - rect.width);
+        }
+        else {
+          me.setPositionFilter.left = rect.left - (346 - rect.width);
+        }
+      }
+      if(!me.isShowFilter && col){
+        me.colFilter = col;
+      }
+      me.isShowFilter = !me.isShowFilter;
+      if(isRelaodFilter){
+        me.gridInfo.pageIndex = 1;
+        me.loadData();
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  /**
    * Thực hiện bắt đầu resizeOn
    * @param event 
    * @param col 
@@ -62,5 +93,6 @@ export const useColumnResize = () => {
   return {
     resizeOn,
     resizeOff,
+    handleShowFilter,
   };
 };

@@ -1,5 +1,5 @@
 <template>
-	<label @click="lockEvent" class="ms-switch">
+	<label @click="lockEvent" class="ms-switch" :class="{ 'disabled' : disabled }">
     <span class="label-left" v-if="labelLeft">{{ labelLeft }}</span>
 		<input type="checkbox"
       v-model="computedValue"
@@ -72,6 +72,9 @@ export default {
 .ms-switch{
   display: flex;
   position: relative;
+  &.disabled{
+    opacity: 0.6;
+  }
   span{
     font-size: 14px;
     display: inline-block;
